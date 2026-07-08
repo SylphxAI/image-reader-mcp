@@ -1,0 +1,22 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.SylphxAI/image-reader-mcp",
+  "title": "Image Reader MCP",
+  "description": "Evidence-first image MCP. Agent Media Twin with metadata and citeable OCR evidence.",
+  "repository": {
+    "url": "https://github.com/SylphxAI/image-reader-mcp",
+    "source": "github"
+  },
+  "version": "0.0.0",
+  "websiteUrl": "https://github.com/SylphxAI/image-reader-mcp#readme",
+  "packages": [
+    {
+      "registryType": "npm",
+      "identifier": "@sylphx/image-reader-mcp",
+      "version": "0.0.0",
+      "transport": {
+        "type": "stdio"
+      }
+    }
+  ]
+}

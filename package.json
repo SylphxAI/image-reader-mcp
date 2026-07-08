@@ -1,6 +1,6 @@
 {
   "name": "@sylphx/image-reader-mcp",
-  "version": "0.1.0",
+  "version": "0.0.0",
   "mcpName": "io.github.SylphxAI/image-reader-mcp",
   "description": "Evidence-first image reading for AI agents — metadata, OCR text, regions, and citeable evidence without generative LLM.",
   "type": "module",
@@ -49,8 +49,11 @@
     "check": "biome check .",
     "check:fix": "biome check --write .",
     "validate": "bun run check && bun run typecheck && bun run test",
+    "sync:server-json": "bun scripts/sync-server-json.ts",
     "start": "node dist/index.js",
-    "clean": "rm -rf dist coverage"
+    "clean": "rm -rf dist coverage",
+    "prepublishOnly": "bun run clean && bun run build",
+    "release": "bun run typecheck && bun run check && bun run build && bun test && changeset publish"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.29.0",
@@ -60,6 +63,8 @@
   },
   "devDependencies": {
     "@biomejs/biome": "^2.4.16",
+    "@changesets/changelog-github": "^0.7.0",
+    "@changesets/cli": "^2.31.0",
     "@types/node": "^25.9.1",
     "bunup": "0.16.31",
     "typescript": "^7.0.2"
