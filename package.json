@@ -1,0 +1,21 @@
+{
+  "name": "@sylphx/image-reader-mcp",
+  "version": "0.0.0",
+  "description": "Evidence-first image reading for AI agents — metadata, OCR text, regions, and citeable evidence without generative LLM.",
+  "type": "module",
+  "private": true,
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/SylphxAI/image-reader-mcp.git"
+  },
+  "homepage": "https://github.com/SylphxAI/image-reader-mcp#readme",
+  "keywords": ["mcp", "model-context-protocol", "reader", "evidence", "sylphx"],
+  "engines": {
+    "node": ">=22.13.0"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "echo \"bootstrap: no tests yet\" && exit 0"
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "schemaVersion": 1,
+  "project": {
+    "repo": "SylphxAI/image-reader-mcp",
+    "name": "Image Reader MCP",
+    "lifecycle": "bootstrap",
+    "layer": "tooling",
+    "summary": "Evidence-first image reading for AI agents — metadata, OCR text, regions, and citeable evidence without generative LLM."
+  }
+}
