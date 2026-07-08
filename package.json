@@ -1,21 +1,68 @@
 {
   "name": "@sylphx/image-reader-mcp",
-  "version": "0.0.0",
+  "version": "0.1.0",
+  "mcpName": "io.github.SylphxAI/image-reader-mcp",
   "description": "Evidence-first image reading for AI agents — metadata, OCR text, regions, and citeable evidence without generative LLM.",
   "type": "module",
-  "private": true,
+  "bin": {
+    "image-reader-mcp": "./dist/index.js"
+  },
+  "files": [
+    "dist/",
+    "README.md",
+    "LICENSE"
+  ],
+  "exports": {
+    ".": "./dist/index.js"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
   "license": "MIT",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/SylphxAI/image-reader-mcp.git"
   },
   "homepage": "https://github.com/SylphxAI/image-reader-mcp#readme",
-  "keywords": ["mcp", "model-context-protocol", "reader", "evidence", "sylphx"],
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "image",
+    "reader",
+    "ocr",
+    "metadata",
+    "evidence",
+    "sylphx",
+    "agent-media-twin"
+  ],
   "engines": {
     "node": ">=22.13.0"
   },
   "scripts": {
+    "build": "bunup --no-dts",
+    "watch": "tsc --watch",
+    "test": "bun test",
+    "test:watch": "bun test --watch",
     "typecheck": "tsc --noEmit",
-    "test": "echo \"bootstrap: no tests yet\" && exit 0"
-  }
+    "lint": "biome lint .",
+    "format": "biome format --write .",
+    "check": "biome check .",
+    "check:fix": "biome check --write .",
+    "validate": "bun run check && bun run typecheck && bun run test",
+    "start": "node dist/index.js",
+    "clean": "rm -rf dist coverage"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.29.0",
+    "exifr": "^7.1.3",
+    "sharp": "^0.34.3",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.4.16",
+    "@types/node": "^25.9.1",
+    "bunup": "0.16.31",
+    "typescript": "^7.0.2"
+  },
+  "packageManager": "bun@1.3.12"
 }
