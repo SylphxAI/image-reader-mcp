@@ -1,5 +1,6 @@
 use image_reader_core::{
-    crop_region, probe_image, ProbeErrorCode, RegionBBox, ENGINE_NAME, ENGINE_VERSION,
+    crop_region, probe_image, read_image_from_value, ProbeErrorCode, RegionBBox, ENGINE_NAME,
+    ENGINE_VERSION, READ_IMAGE_ROUTE,
 };
 use serde::Deserialize;
 use std::io::{self, Read};
@@ -17,6 +18,15 @@ struct ProbeSuccessEnvelope {
     engine: &'static str,
     version: &'static str,
     probe: image_reader_core::ImageProbe,
+}
+
+#[derive(Debug, serde::Serialize)]
+struct ReadImageSuccessEnvelope {
+    status: &'static str,
+    engine: &'static str,
+    version: &'static str,
+    route: &'static str,
+    twin: image_reader_core::AgentMediaTwin,
 }
 
 #[derive(Debug, serde::Serialize)]
@@ -208,6 +218,23 @@ fn main() {
     };
 
     let output = match request.tool.as_str() {
+        "read_image" => match read_image_from_value(&request.input) {
+            Ok(twin) => serde_json::to_string(&ReadImageSuccessEnvelope {
+                status: "ok",
+                engine: ENGINE_NAME,
+                version: ENGINE_VERSION,
+                route: READ_IMAGE_ROUTE,
+                twin,
+            })
+            .expect("serialize"),
+            Err(error) => serde_json::to_string(&ErrorEnvelope {
+                status: "error",
+                code: policy_code(error.code).into(),
+                message: error.message,
+                next_action: "Provide a readable image path within configured safety limits.".into(),
+            })
+            .expect("serialize"),
+        },
         "image_probe" => match handle_image_probe(&request.input) {
             Ok(success) => serde_json::to_string(&success).expect("serialize"),
             Err(error) => serde_json::to_string(&error).expect("serialize"),
@@ -220,7 +247,7 @@ fn main() {
             status: "error",
             code: "UNSUPPORTED_TOOL".into(),
             message: format!("Unsupported tool: {other}"),
-            next_action: "Use image_probe or crop_region.".into(),
+            next_action: "Use read_image, image_probe, or crop_region.".into(),
         })
         .expect("serialize"),
     };

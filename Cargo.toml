@@ -1,5 +1,9 @@
 [workspace]
-members = ["crates/image-reader-core", "crates/image-reader-cli"]
+members = [
+    "crates/image-reader-core",
+    "crates/image-reader-cli",
+    "crates/image-reader-mcp-server",
+]
 resolver = "2"
 
 [workspace.package]

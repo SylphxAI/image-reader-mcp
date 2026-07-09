@@ -1,5 +1,11 @@
 //! Rust image probe and hash engine for image-reader-mcp.
 
+pub mod read_image;
+
+pub use read_image::{
+    read_image, read_image_from_value, AgentMediaTwin, ReadImageOptions, READ_IMAGE_ROUTE,
+};
+
 use std::fs;
 use std::io::Cursor;
 use std::path::Path;
@@ -65,14 +71,14 @@ pub struct ProbeError {
 }
 
 impl ProbeError {
-    fn invalid_params(message: impl Into<String>) -> Self {
+    pub(crate) fn invalid_params(message: impl Into<String>) -> Self {
         Self {
             code: ProbeErrorCode::InvalidParams,
             message: message.into(),
         }
     }
 
-    fn invalid_request(message: impl Into<String>) -> Self {
+    pub(crate) fn invalid_request(message: impl Into<String>) -> Self {
         Self {
             code: ProbeErrorCode::InvalidRequest,
             message: message.into(),

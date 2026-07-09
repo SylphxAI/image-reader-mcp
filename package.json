@@ -5,9 +5,10 @@
   "description": "Evidence-first image reading for AI agents — metadata, OCR text, regions, and citeable evidence without generative LLM.",
   "type": "module",
   "bin": {
-    "image-reader-mcp": "./dist/index.js"
+    "image-reader-mcp": "./bin/image-reader-mcp"
   },
   "files": [
+    "bin/",
     "dist/",
     "README.md",
     "LICENSE"
@@ -39,6 +40,8 @@
     "node": ">=22.13.0"
   },
   "scripts": {
+    "build:rust": "cargo build --release -p image-reader-core -p image-reader-cli -p image-reader-mcp-server && bun scripts/stage-rust-mcp.ts",
+    "test:rust": "cargo test",
     "build": "bunup --no-dts",
     "watch": "tsc --watch",
     "test": "bun test",

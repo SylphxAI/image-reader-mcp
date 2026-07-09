@@ -1,11 +1,11 @@
 {
   "profile": "image_reader_release_gate",
-  "generated_at": "2026-07-09T04:44:50.974Z",
+  "generated_at": "2026-07-09T10:10:54.912Z",
   "artifact_dir": "/home/codex/src/github.com/SylphxAI/image-reader-mcp/benchmark-artifacts",
   "status": "passed",
   "summary": {
-    "total": 12,
-    "passed": 12,
+    "total": 15,
+    "passed": 15,
     "failed": 0
   },
   "checks": [
@@ -14,7 +14,7 @@
       "status": "passed",
       "message": "package.json exposes the image-reader-mcp bin entry",
       "evidence": {
-        "bin": "./dist/index.js"
+        "bin": "./bin/image-reader-mcp"
       }
     },
     {
@@ -72,6 +72,24 @@
         "width": 8,
         "height": 4
       }
+    },
+    {
+      "id": "mcp:rust_adapter_default",
+      "status": "passed",
+      "message": "Default npm bin launches the Rust rmcp MCP server; TypeScript adapter is opt-in only"
+    },
+    {
+      "id": "boundary:rust_cli_engine",
+      "status": "passed",
+      "message": "Shipped-path matrix test proves primary tools route through Rust core without legacy runtime",
+      "evidence": {
+        "exitCode": 0
+      }
+    },
+    {
+      "id": "rust:mcp_server_crate",
+      "status": "passed",
+      "message": "image-reader-mcp-server rmcp crate builds for release"
     },
     {
       "id": "doctor:sharp",

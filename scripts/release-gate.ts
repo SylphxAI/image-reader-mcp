@@ -1,3 +1,4 @@
+import { execSync, spawnSync } from 'node:child_process';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { runDoctor } from '../src/doctor.js';
@@ -162,6 +163,56 @@ export async function buildReleaseGateReport(artifactDir: string): Promise<Relea
       false,
       'sample.png fixture is missing for crop_region boundary checks'
     );
+  }
+
+  const binWrapper = readFileSync(path.join(repoRoot, 'bin/image-reader-mcp'), 'utf8');
+  addCheck(
+    checks,
+    'mcp:rust_adapter_default',
+    binWrapper.includes('image-reader-mcp-server') &&
+      binWrapper.includes('resolve_rust_bin') &&
+      binWrapper.includes('use_ts_transport'),
+    'Default npm bin launches the Rust rmcp MCP server; TypeScript adapter is opt-in only'
+  );
+
+  const matrixProbe = spawnSync('bun', ['test', 'test/shippedPath.matrix.test.ts'], {
+    cwd: repoRoot,
+    encoding: 'utf8',
+    env: {
+      ...process.env,
+      IMAGE_READER_ALLOW_LEGACY_ENGINE: '',
+    },
+    timeout: 300_000,
+  });
+  addCheck(
+    checks,
+    'boundary:rust_cli_engine',
+    fileExists('crates/image-reader-mcp-server/src/tool_routes.rs') && matrixProbe.status === 0,
+    'Shipped-path matrix test proves primary tools route through Rust core without legacy runtime',
+    matrixProbe.status === 0
+      ? { exitCode: 0 }
+      : {
+          exitCode: matrixProbe.status,
+          stderr: matrixProbe.stderr?.slice(-2000),
+          stdout: matrixProbe.stdout?.slice(-2000),
+        }
+  );
+
+  try {
+    execSync('cargo build --release -p image-reader-mcp-server', {
+      cwd: repoRoot,
+      stdio: 'pipe',
+      timeout: 300_000,
+    });
+    addCheck(
+      checks,
+      'rust:mcp_server_crate',
+      fileExists('target/release/image-reader-mcp-server'),
+      'image-reader-mcp-server rmcp crate builds for release'
+    );
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : String(error);
+    addCheck(checks, 'rust:mcp_server_crate', false, `image-reader-mcp-server build failed: ${message}`);
   }
 
   const doctor = await runDoctor(pkg.version);
