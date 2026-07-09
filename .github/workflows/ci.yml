@@ -35,3 +35,6 @@ jobs:
 
       - name: Run tests
         run: bun test
+
+      - name: Public surface audit (README discovery)
+        run: bun test test/readmeDiscovery.test.ts
