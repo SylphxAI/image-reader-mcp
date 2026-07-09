@@ -1,0 +1,116 @@
+{
+  "profile": "image_reader_release_gate",
+  "generated_at": "2026-07-09T15:36:43.063Z",
+  "artifact_dir": "/home/codex/src/github.com/SylphxAI/image-reader-mcp/benchmark-artifacts",
+  "status": "passed",
+  "summary": {
+    "total": 16,
+    "passed": 16,
+    "failed": 0
+  },
+  "checks": [
+    {
+      "id": "package:read_image_bin",
+      "status": "passed",
+      "message": "package.json exposes the image-reader-mcp bin entry",
+      "evidence": {
+        "bin": "./bin/image-reader-mcp"
+      }
+    },
+    {
+      "id": "safety:byte_limit",
+      "status": "passed",
+      "message": "32 MiB file byte safety limit is configured",
+      "evidence": {
+        "maxFileBytes": 33554432
+      }
+    },
+    {
+      "id": "rust:decode_core",
+      "status": "passed",
+      "message": "Rust image-reader-core decode engine is present"
+    },
+    {
+      "id": "rust:crop_region_core",
+      "status": "passed",
+      "message": "Rust image-reader-core exposes crop_region for region evidence"
+    },
+    {
+      "id": "safety:pixel_limit",
+      "status": "passed",
+      "message": "64 megapixel safety budget is configured",
+      "evidence": {
+        "maxPixels": 67108864
+      }
+    },
+    {
+      "id": "fixtures:sample_png",
+      "status": "passed",
+      "message": "Checked-in image fixture scaffold exists for deterministic handler tests"
+    },
+    {
+      "id": "examples:metadata_request",
+      "status": "passed",
+      "message": "examples/metadata-only-request.json documents a metadata-only read_image call"
+    },
+    {
+      "id": "examples:ocr_request",
+      "status": "passed",
+      "message": "examples/ocr-request.json documents an OCR-enabled read_image call"
+    },
+    {
+      "id": "examples:response_shape",
+      "status": "passed",
+      "message": "examples/sample-agent-media-twin.json documents the Agent Media Twin response shape"
+    },
+    {
+      "id": "boundary:crop_region",
+      "status": "passed",
+      "message": "crop_region returns citeable region evidence from the Rust CLI",
+      "evidence": {
+        "route": "rust-crop",
+        "width": 8,
+        "height": 4
+      }
+    },
+    {
+      "id": "mcp:rust_adapter_default",
+      "status": "passed",
+      "message": "Default npm bin launches the Rust rmcp MCP server; TypeScript adapter is opt-in only"
+    },
+    {
+      "id": "boundary:rust_cli_engine",
+      "status": "passed",
+      "message": "Shipped-path matrix test proves primary tools route through Rust core without legacy runtime",
+      "evidence": {
+        "exitCode": 0
+      }
+    },
+    {
+      "id": "rust:mcp_server_crate",
+      "status": "passed",
+      "message": "image-reader-mcp-server rmcp crate builds for release"
+    },
+    {
+      "id": "doctor:sharp",
+      "status": "passed",
+      "message": "doctor reports sharp decode pipeline is available",
+      "evidence": {
+        "doctorStatus": "ready"
+      }
+    },
+    {
+      "id": "doctor:safety_limits",
+      "status": "passed",
+      "message": "doctor reports safety limits are configured"
+    },
+    {
+      "id": "contract:reader_evidence_dep",
+      "status": "passed",
+      "message": "image-reader depends on @sylphx/reader-evidence shared schema package",
+      "evidence": {
+        "dependency": "file:../reader-evidence"
+      }
+    }
+  ]
+}

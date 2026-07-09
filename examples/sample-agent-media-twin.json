@@ -1,0 +1,22 @@
+{
+  "filename": "photo.jpg",
+  "mime": "image/jpeg",
+  "dimensions": { "width": 4032, "height": 3024 },
+  "orientation": 1,
+  "metadata": {
+    "Make": "ExampleCamera",
+    "Model": "Pro X",
+    "DateTimeOriginal": "2026-03-15T14:22:10"
+  },
+  "ocr": {
+    "available": true,
+    "lines": [
+      {
+        "text": "INVOICE #1042",
+        "bbox": { "x": 120, "y": 48, "width": 310, "height": 36 },
+        "confidence": 92
+      }
+    ]
+  },
+  "trust_warnings": []
+}
