@@ -61,11 +61,7 @@ describe('shipped path matrix (Rust core, no legacy flags)', () => {
   }, 300_000);
 
   it('image_probe routes through image-reader-core without legacy runtime', () => {
-    const envelope = invokeCli(
-      'image_probe',
-      { path: samplePng },
-      fakeNodeEnv
-    );
+    const envelope = invokeCli('image_probe', { path: samplePng }, fakeNodeEnv);
     expect(envelope.status).toBe('ok');
     expect(envelope.engine).toBe('image-reader-core');
     expect(envelope.probe?.route).toBe('rust-probe');
@@ -99,9 +95,9 @@ describe('shipped path matrix (Rust core, no legacy flags)', () => {
     expect(envelope.twin?.mime).toBe('image/png');
     expect(envelope.envelope?.delegation?.delegated_tool).toBe('read_image');
     expect(envelope.envelope?.delegation?.reader_package).toBe('@sylphx/image-reader-mcp');
-    expect(
-      envelope.twin?.trust_warnings?.some((warning) => warning.includes('rust-probe'))
-    ).toBe(true);
+    expect(envelope.twin?.trust_warnings?.some((warning) => warning.includes('rust-probe'))).toBe(
+      true
+    );
     expect(existsSync(nodeInvokeLog)).toBe(false);
   });
 

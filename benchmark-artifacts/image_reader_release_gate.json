@@ -1,6 +1,6 @@
 {
   "profile": "image_reader_release_gate",
-  "generated_at": "2026-07-09T15:36:43.063Z",
+  "generated_at": "2026-07-09T15:41:26.912Z",
   "artifact_dir": "/home/codex/src/github.com/SylphxAI/image-reader-mcp/benchmark-artifacts",
   "status": "passed",
   "summary": {
