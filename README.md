@@ -13,7 +13,7 @@ trust warnings you can cite without asking a vision LLM to guess.
 [![CI/CD](https://img.shields.io/github/actions/workflow/status/SylphxAI/image-reader-mcp/ci.yml?style=flat-square&label=CI/CD)](https://github.com/SylphxAI/image-reader-mcp/actions/workflows/ci.yml)
 [![TypeScript](https://img.shields.io/badge/TypeScript-7.0-blue.svg?style=flat-square)](https://www.typescriptlang.org/)
 
-**Local-first** · **One smart `read_image` call** · **Evidence with bbox + provenance** · **15 tests**
+**Local-first** · **One smart `read_image` call** · **Evidence with bbox + provenance** · **22 tests**
 
 [⭐ Star this repo](https://github.com/SylphxAI/image-reader-mcp) if agents should read images with facts, not vision-model guesses.
 · [Quick start](#quick-start) · [See it work](#see-it-work) · [Why not vision LLM guess?](#why-not-vision-llm-guess)
@@ -47,7 +47,7 @@ an image, not a creative caption.**
 | GPS and EXIF leak into context | GPS redacted; trust warnings for suspicious metadata |
 | No provenance | Agent Media Twin JSON with measurable, citeable fields |
 | Cloud API by default | **Local-first** — sharp + exifr on your machine |
-| Ship and pray | **15** unit tests on schema, metadata, OCR hooks, and handler paths |
+| Ship and pray | **22** unit tests on schema, metadata, OCR hooks, safety limits, doctor, and release gate |
 
 ## See it work
 
@@ -143,6 +143,8 @@ cd image-reader-mcp
 bun install
 bun run build
 bun test
+bun run doctor
+bun run benchmark:release-gate
 ```
 
 Useful checks:
@@ -151,7 +153,10 @@ Useful checks:
 bun run check
 bun run typecheck
 bun run validate
+bun run benchmark:release-gate
 ```
+
+Example `read_image` requests live in [`examples/`](examples/).
 
 ## Support
 

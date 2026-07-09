@@ -1,4 +1,4 @@
-import fs from 'node:fs/promises';
+import fs, { stat } from 'node:fs/promises';
 import path from 'node:path';
 import exifr from 'exifr';
 import sharp from 'sharp';
@@ -8,6 +8,7 @@ import { ErrorCode, ImageError } from '../utils/errors.js';
 import { collectTrustWarnings, redactGpsFields } from '../utils/metadata.js';
 import { runTesseractOcr } from '../utils/ocr.js';
 import { resolvePath } from '../utils/pathUtils.js';
+import { validateImageSafety } from '../utils/safety.js';
 
 const mimeFromFormat = (format: string | undefined): string => {
   switch (format) {
@@ -91,8 +92,16 @@ export const readImage = tool()
     }
 
     try {
+      const fileStat = await stat(resolvedPath);
+      validateImageSafety({ fileSizeBytes: fileStat.size });
+
       const image = sharp(resolvedPath, { failOn: 'none' });
       const metadata = await image.metadata();
+      validateImageSafety({
+        fileSizeBytes: fileStat.size,
+        width: metadata.width,
+        height: metadata.height,
+      });
       const includeMetadata = input.include_metadata ?? true;
       const includeOcr = input.include_ocr ?? false;
       const ocrLanguages = input.ocr_languages ?? ['eng'];

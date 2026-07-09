@@ -4,6 +4,7 @@ import path from 'node:path';
 import sharp from 'sharp';
 import { readImage } from '../src/handlers/readImage.js';
 import type { AgentMediaTwin } from '../src/schemas/readImage.js';
+import { IMAGE_SAFETY_LIMITS } from '../src/utils/safety.js';
 
 const fixtureDir = path.join(import.meta.dirname, 'fixtures');
 const fixturePath = path.join(fixtureDir, 'sample.png');
@@ -73,6 +74,32 @@ describe('readImage handler', () => {
     });
 
     expect(result).toMatchObject({ isError: true });
+  });
+
+  it('rejects images above the pixel safety budget', async () => {
+    const oversizedPath = path.join(fixtureDir, 'oversized.png');
+    await sharp({
+      create: {
+        width: 8200,
+        height: 8200,
+        channels: 3,
+        background: { r: 10, g: 20, b: 30 },
+      },
+    })
+      .png()
+      .toFile(oversizedPath);
+
+    const result = await readImage.handler({
+      input: { path: oversizedPath },
+      ctx: {},
+    });
+
+    expect(result).toMatchObject({ isError: true });
+    const block =
+      'content' in result && Array.isArray(result.content) ? result.content[0] : undefined;
+    expect(block?.type === 'text' ? block.text : '').toContain(
+      String(IMAGE_SAFETY_LIMITS.maxPixels)
+    );
   });
 
   it('includes OCR status when requested', async () => {

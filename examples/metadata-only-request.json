@@ -1,0 +1,5 @@
+{
+  "path": "/absolute/path/to/photo.jpg",
+  "include_metadata": true,
+  "include_ocr": false
+}

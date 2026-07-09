@@ -1,0 +1,6 @@
+{
+  "path": "/absolute/path/to/scan.png",
+  "include_metadata": true,
+  "include_ocr": true,
+  "ocr_languages": ["eng"]
+}

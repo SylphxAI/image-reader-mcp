@@ -49,6 +49,8 @@
     "check": "biome check .",
     "check:fix": "biome check --write .",
     "validate": "bun run check && bun run typecheck && bun run test",
+    "doctor": "bun run src/index.ts doctor",
+    "benchmark:release-gate": "bun scripts/release-gate.ts",
     "sync:server-json": "bun scripts/sync-server-json.ts",
     "version-packages": "changeset version && bun run sync:server-json",
     "start": "node dist/index.js",
