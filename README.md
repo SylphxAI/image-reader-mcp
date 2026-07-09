@@ -135,6 +135,24 @@ npx @sylphx/image-reader-mcp
 Node.js `>=22.13` is required. Optional OCR uses a local Tesseract adapter when
 installed — no cloud credentials required by default.
 
+## Security model
+
+- **Local-first** — `read_image` resolves paths on the local machine; no cloud vision API by default.
+- **GPS redaction** — location metadata is stripped from agent-facing output unless explicitly opted in.
+- **Size and format limits** — oversized or unsupported inputs return structured errors, not partial guesses.
+- **Optional OCR** — Tesseract runs locally when installed; missing OCR is reported as `available: false`, not silent failure.
+- **Trust warnings** — suspicious EXIF, orientation, or metadata anomalies surface in `trust_warnings` for agent verification.
+
+## Release proof
+
+Claims are backed by CI `benchmark:release-gate` and the shipped-path matrix (Rust-default route, no legacy Node engine on primary tools).
+
+```bash
+bun run benchmark:release-gate
+```
+
+Artifact: `benchmark-artifacts/image_reader_release_gate.json` — must report `status: passed` before release.
+
 ## Development
 
 ```bash
