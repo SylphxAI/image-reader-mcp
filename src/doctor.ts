@@ -122,7 +122,41 @@ const probeRustDecodeCli = (): DoctorCheck => {
     id: 'rust_decode_cli',
     status: 'warn',
     message:
-      'Rust decode CLI is not built. Run `cargo build --release` to enable IMAGE_READER_USE_RUST_DECODE=1.',
+      'Rust decode CLI is not built. Run `cargo build --release` to enable the default Rust probe and region crop path.',
+  };
+};
+
+const probeRustDecodeFlag = (): DoctorCheck => {
+  if (process.env['IMAGE_READER_USE_RUST_DECODE'] === '0') {
+    return {
+      id: 'rust_decode_flag',
+      status: 'warn',
+      message: 'IMAGE_READER_USE_RUST_DECODE=0 forces the sharp fallback adapter path.',
+    };
+  }
+
+  if (process.env['IMAGE_READER_USE_RUST_DECODE'] === '1') {
+    return {
+      id: 'rust_decode_flag',
+      status: 'ok',
+      message: 'IMAGE_READER_USE_RUST_DECODE=1 routes probe and region evidence through the Rust core.',
+    };
+  }
+
+  const binary = resolveRustCliBinary();
+  if (binary !== 'image-reader-cli' && existsSync(binary)) {
+    return {
+      id: 'rust_decode_flag',
+      status: 'ok',
+      message: 'Rust decode CLI is built; probe and region evidence default to the Rust core.',
+    };
+  }
+
+  return {
+    id: 'rust_decode_flag',
+    status: 'warn',
+    message:
+      'Rust decode CLI is not built. sharp remains the default probe path until `cargo build --release`.',
   };
 };
 
@@ -159,6 +193,7 @@ export async function runDoctor(version: string): Promise<DoctorReport> {
     probeNode(),
     probeSafetyLimits(),
     probeRustDecodeCli(),
+    probeRustDecodeFlag(),
     await probeSharp(),
     probeTesseract(),
   ];

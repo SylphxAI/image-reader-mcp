@@ -1,6 +1,7 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { runDoctor } from '../src/doctor.js';
+import { cropRegionViaRustEngine } from '../src/engine/rust-decode.js';
 import { IMAGE_SAFETY_LIMITS } from '../src/utils/safety.js';
 
 const ARTIFACT_DIR_ENV = 'MCP_IMAGE_BENCHMARK_OUTPUT_DIR';
@@ -81,6 +82,16 @@ export async function buildReleaseGateReport(artifactDir: string): Promise<Relea
 
   addCheck(
     checks,
+    'rust:crop_region_core',
+    fileExists('crates/image-reader-core/src/lib.rs') &&
+      readFileSync(path.join(repoRoot, 'crates/image-reader-core/src/lib.rs'), 'utf8').includes(
+        'pub fn crop_region'
+      ),
+    'Rust image-reader-core exposes crop_region for region evidence',
+  );
+
+  addCheck(
+    checks,
     'safety:pixel_limit',
     IMAGE_SAFETY_LIMITS.maxPixels === 64 * 1024 * 1024,
     '64 megapixel safety budget is configured',
@@ -114,6 +125,44 @@ export async function buildReleaseGateReport(artifactDir: string): Promise<Relea
     fileExists('examples/sample-agent-media-twin.json'),
     'examples/sample-agent-media-twin.json documents the Agent Media Twin response shape'
   );
+
+  const sampleFixture = path.join(repoRoot, 'test/fixtures/sample.png');
+  if (existsSync(sampleFixture)) {
+    try {
+      const evidence = cropRegionViaRustEngine({
+        filePath: sampleFixture,
+        maxFileBytes: IMAGE_SAFETY_LIMITS.maxFileBytes,
+        maxPixels: IMAGE_SAFETY_LIMITS.maxPixels,
+        region: { x: 2, y: 1, width: 8, height: 4 },
+      });
+      addCheck(
+        checks,
+        'boundary:crop_region',
+        evidence.route === 'rust-crop' && evidence.regionHash.length > 0,
+        'crop_region returns citeable region evidence from the Rust CLI',
+        {
+          route: evidence.route,
+          width: evidence.width,
+          height: evidence.height,
+        }
+      );
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : String(error);
+      addCheck(
+        checks,
+        'boundary:crop_region',
+        false,
+        `crop_region boundary check failed: ${message}`
+      );
+    }
+  } else {
+    addCheck(
+      checks,
+      'boundary:crop_region',
+      false,
+      'sample.png fixture is missing for crop_region boundary checks'
+    );
+  }
 
   const doctor = await runDoctor(pkg.version);
   addCheck(

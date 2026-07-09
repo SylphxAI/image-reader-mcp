@@ -4,13 +4,38 @@ use std::fs;
 use std::io::Cursor;
 use std::path::Path;
 
-use image::ImageFormat;
+use image::{GenericImageView, ImageFormat};
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 
 pub const ENGINE_NAME: &str = "image-reader-core";
 pub const ENGINE_VERSION: &str = "0.1.0";
 pub const DECODE_ROUTE: &str = "rust-probe";
+pub const CROP_ROUTE: &str = "rust-crop";
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct RegionBBox {
+    pub x: u32,
+    pub y: u32,
+    pub width: u32,
+    pub height: u32,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct RegionEvidence {
+    pub bbox: RegionBBox,
+    pub width: u32,
+    pub height: u32,
+    pub pixel_count: u64,
+    pub region_hash: String,
+    pub mime: String,
+    pub route: String,
+    pub resized: bool,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub image_base64: Option<String>,
+}
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -155,6 +180,164 @@ fn infer_has_alpha(format: ImageFormat, bytes: &[u8]) -> bool {
     matches!(format, ImageFormat::WebP | ImageFormat::Gif)
 }
 
+fn read_image_bytes(path: &Path, max_file_bytes: u64) -> Result<Vec<u8>, ProbeError> {
+    let meta = fs::metadata(path).map_err(|err| {
+        ProbeError::invalid_request(format!("Unable to access image at '{}': {err}", path.display()))
+    })?;
+
+    if !meta.is_file() {
+        return Err(ProbeError::invalid_request(format!(
+            "Path '{}' is not a regular file.",
+            path.display()
+        )));
+    }
+
+    if meta.len() > max_file_bytes {
+        return Err(ProbeError::invalid_request(format!(
+            "Image file exceeds maximum size of {} bytes.",
+            max_file_bytes
+        )));
+    }
+
+    fs::read(path).map_err(|err| ProbeError::invalid_request(format!("Failed to read image bytes: {err}")))
+}
+
+fn validate_bbox(bbox: &RegionBBox, image_width: u32, image_height: u32) -> Result<(), ProbeError> {
+    if bbox.width == 0 || bbox.height == 0 {
+        return Err(ProbeError::invalid_params(
+            "Region width and height must be positive.",
+        ));
+    }
+
+    let right = bbox.x.saturating_add(bbox.width);
+    let bottom = bbox.y.saturating_add(bbox.height);
+
+    if right > image_width || bottom > image_height {
+        return Err(ProbeError::invalid_params(format!(
+            "Region ({}, {}, {}, {}) exceeds image bounds ({}x{}).",
+            bbox.x, bbox.y, bbox.width, bbox.height, image_width, image_height
+        )));
+    }
+
+    Ok(())
+}
+
+pub fn crop_region(
+    path: &Path,
+    max_file_bytes: u64,
+    max_pixels: u64,
+    bbox: RegionBBox,
+    max_dimension: Option<u32>,
+    include_image_base64: bool,
+) -> Result<RegionEvidence, ProbeError> {
+    let bytes = read_image_bytes(path, max_file_bytes)?;
+    let image = image::load_from_memory(&bytes).map_err(|err| {
+        ProbeError::invalid_request(format!("Failed to decode image for crop: {err}"))
+    })?;
+
+    let (image_width, image_height) = image.dimensions();
+    validate_bbox(&bbox, image_width, image_height)?;
+
+    let source_pixels = u64::from(bbox.width) * u64::from(bbox.height);
+    if source_pixels > max_pixels {
+        return Err(ProbeError::invalid_request(format!(
+            "Cropped region exceeds the {} pixel safety budget.",
+            max_pixels
+        )));
+    }
+
+    let cropped = image.crop_imm(bbox.x, bbox.y, bbox.width, bbox.height);
+    let (mut output_width, mut output_height) = cropped.dimensions();
+    let mut resized = false;
+
+    if let Some(limit) = max_dimension {
+        if limit > 0 && (output_width > limit || output_height > limit) {
+            let scale = f64::from(limit)
+                / f64::from(output_width.max(output_height));
+            output_width = ((f64::from(output_width) * scale).round() as u32).max(1);
+            output_height = ((f64::from(output_height) * scale).round() as u32).max(1);
+            resized = true;
+        }
+    }
+
+    let rendered = if resized {
+        image::DynamicImage::ImageRgba8(image::imageops::resize(
+            &cropped,
+            output_width,
+            output_height,
+            image::imageops::FilterType::Triangle,
+        ))
+    } else {
+        cropped
+    };
+
+    let pixel_count = u64::from(output_width) * u64::from(output_height);
+    if pixel_count > max_pixels {
+        return Err(ProbeError::invalid_request(format!(
+            "Resized region exceeds the {} pixel safety budget.",
+            max_pixels
+        )));
+    }
+
+    let mut png_bytes = Vec::new();
+    rendered
+        .write_to(&mut Cursor::new(&mut png_bytes), ImageFormat::Png)
+        .map_err(|err| ProbeError::invalid_request(format!("Failed to encode cropped PNG: {err}")))?;
+
+    let region_hash = format!("{:x}", Sha256::digest(&png_bytes));
+    let image_base64 = if include_image_base64 {
+        Some(base64_encode(&png_bytes))
+    } else {
+        None
+    };
+
+    Ok(RegionEvidence {
+        bbox,
+        width: output_width,
+        height: output_height,
+        pixel_count,
+        region_hash,
+        mime: "image/png".into(),
+        route: CROP_ROUTE.into(),
+        resized,
+        image_base64,
+    })
+}
+
+fn base64_encode(bytes: &[u8]) -> String {
+    const TABLE: &[u8; 64] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+    let mut out = String::with_capacity((bytes.len() + 2) / 3 * 4);
+    let mut index = 0;
+
+    while index + 3 <= bytes.len() {
+        let chunk = u32::from(bytes[index]) << 16
+            | u32::from(bytes[index + 1]) << 8
+            | u32::from(bytes[index + 2]);
+        out.push(TABLE[((chunk >> 18) & 63) as usize] as char);
+        out.push(TABLE[((chunk >> 12) & 63) as usize] as char);
+        out.push(TABLE[((chunk >> 6) & 63) as usize] as char);
+        out.push(TABLE[(chunk & 63) as usize] as char);
+        index += 3;
+    }
+
+    let remainder = bytes.len() - index;
+    if remainder == 1 {
+        let chunk = u32::from(bytes[index]) << 16;
+        out.push(TABLE[((chunk >> 18) & 63) as usize] as char);
+        out.push(TABLE[((chunk >> 12) & 63) as usize] as char);
+        out.push('=');
+        out.push('=');
+    } else if remainder == 2 {
+        let chunk = u32::from(bytes[index]) << 16 | u32::from(bytes[index + 1]) << 8;
+        out.push(TABLE[((chunk >> 18) & 63) as usize] as char);
+        out.push(TABLE[((chunk >> 12) & 63) as usize] as char);
+        out.push(TABLE[((chunk >> 6) & 63) as usize] as char);
+        out.push('=');
+    }
+
+    out
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -185,5 +368,63 @@ mod tests {
         file.write_all(&[0u8; 64]).expect("write");
         let err = probe_image(&path, 32).expect_err("oversized");
         assert_eq!(err.code, ProbeErrorCode::InvalidRequest);
+    }
+
+    #[test]
+    fn crops_region_with_hash_and_route() {
+        let temp = tempfile::tempdir().expect("tempdir");
+        let path = temp.path().join("crop.png");
+        let img = image::RgbaImage::from_pixel(20, 10, image::Rgba([255, 0, 0, 255]));
+        img.save(&path).expect("save png");
+
+        let evidence = crop_region(
+            &path,
+            32 * 1024 * 1024,
+            64 * 1024 * 1024,
+            RegionBBox {
+                x: 4,
+                y: 2,
+                width: 8,
+                height: 4,
+            },
+            None,
+            false,
+        )
+        .expect("crop");
+
+        assert_eq!(evidence.width, 8);
+        assert_eq!(evidence.height, 4);
+        assert_eq!(evidence.pixel_count, 32);
+        assert_eq!(evidence.route, CROP_ROUTE);
+        assert!(!evidence.region_hash.is_empty());
+        assert!(evidence.image_base64.is_none());
+    }
+
+    #[test]
+    fn resizes_large_crops_when_max_dimension_is_set() {
+        let temp = tempfile::tempdir().expect("tempdir");
+        let path = temp.path().join("resize.png");
+        let img = image::RgbaImage::from_pixel(40, 20, image::Rgba([0, 255, 0, 255]));
+        img.save(&path).expect("save png");
+
+        let evidence = crop_region(
+            &path,
+            32 * 1024 * 1024,
+            64 * 1024 * 1024,
+            RegionBBox {
+                x: 0,
+                y: 0,
+                width: 40,
+                height: 20,
+            },
+            Some(10),
+            true,
+        )
+        .expect("crop");
+
+        assert!(evidence.resized);
+        assert_eq!(evidence.width, 10);
+        assert_eq!(evidence.height, 5);
+        assert!(evidence.image_base64.as_ref().is_some_and(|value| !value.is_empty()));
     }
 }

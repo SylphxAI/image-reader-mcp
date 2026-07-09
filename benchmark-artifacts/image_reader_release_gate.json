@@ -1,11 +1,11 @@
 {
   "profile": "image_reader_release_gate",
-  "generated_at": "2026-07-09T04:20:42.361Z",
+  "generated_at": "2026-07-09T04:44:50.974Z",
   "artifact_dir": "/home/codex/src/github.com/SylphxAI/image-reader-mcp/benchmark-artifacts",
   "status": "passed",
   "summary": {
-    "total": 10,
-    "passed": 10,
+    "total": 12,
+    "passed": 12,
     "failed": 0
   },
   "checks": [
@@ -29,6 +29,11 @@
       "id": "rust:decode_core",
       "status": "passed",
       "message": "Rust image-reader-core decode engine is present"
+    },
+    {
+      "id": "rust:crop_region_core",
+      "status": "passed",
+      "message": "Rust image-reader-core exposes crop_region for region evidence"
     },
     {
       "id": "safety:pixel_limit",
@@ -57,6 +62,16 @@
       "id": "examples:response_shape",
       "status": "passed",
       "message": "examples/sample-agent-media-twin.json documents the Agent Media Twin response shape"
+    },
+    {
+      "id": "boundary:crop_region",
+      "status": "passed",
+      "message": "crop_region returns citeable region evidence from the Rust CLI",
+      "evidence": {
+        "route": "rust-crop",
+        "width": 8,
+        "height": 4
+      }
     },
     {
       "id": "doctor:sharp",

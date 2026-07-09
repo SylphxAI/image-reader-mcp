@@ -3,6 +3,7 @@ import path from 'node:path';
 import exifr from 'exifr';
 import sharp from 'sharp';
 import {
+  cropRegionViaRustEngine,
   probeImageViaRustEngine,
   shouldUseRustDecodeEngine,
 } from '../engine/rust-decode.js';
@@ -189,6 +190,42 @@ export const readImage = tool()
           lines: ocr.lines,
           ...(ocr.skipped_reason !== undefined ? { skipped_reason: ocr.skipped_reason } : {}),
         };
+      }
+
+      if (input.region !== undefined) {
+        if (!useRustDecode) {
+          throw new ImageError(
+            ErrorCode.InvalidRequest,
+            'Region evidence requires the Rust decode engine. Build image-reader-cli or set IMAGE_READER_USE_RUST_DECODE=1.'
+          );
+        }
+
+        const evidence = cropRegionViaRustEngine({
+          filePath: resolvedPath,
+          maxFileBytes: IMAGE_SAFETY_LIMITS.maxFileBytes,
+          maxPixels: IMAGE_SAFETY_LIMITS.maxPixels,
+          region: input.region,
+          ...(input.max_region_dimension !== undefined
+            ? { maxRegionDimension: input.max_region_dimension }
+            : {}),
+          includeRegionImage: input.include_region_image ?? false,
+        });
+
+        twin.region_evidence = {
+          bbox: evidence.bbox,
+          dimensions: {
+            width: evidence.width,
+            height: evidence.height,
+          },
+          region_hash: evidence.regionHash,
+          mime: evidence.mime,
+          route: evidence.route,
+          ...(evidence.resized ? { resized: evidence.resized } : {}),
+          ...(evidence.imageBase64 !== undefined ? { image_base64: evidence.imageBase64 } : {}),
+        };
+        twin.trust_warnings.push(
+          `Region evidence: ${evidence.route} (hash ${evidence.regionHash.slice(0, 12)}…).`
+        );
       }
 
       return text(JSON.stringify(twin, null, 2));

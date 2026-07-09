@@ -34,6 +34,21 @@ export const readImageArgsSchema = z.object({
     .array(z.string().min(1))
     .optional()
     .describe('OCR language codes for Tesseract (e.g. ["eng"]). Defaults to ["eng"].'),
+  region: boundingBoxSchema
+    .optional()
+    .describe('Optional pixel region to crop and attach as citeable evidence.'),
+  include_region_image: z
+    .boolean()
+    .optional()
+    .describe(
+      'When region is set, include base64 PNG bytes of the cropped region. Defaults to false.'
+    ),
+  max_region_dimension: z
+    .number()
+    .int()
+    .positive()
+    .optional()
+    .describe('Maximum width or height when resizing the cropped region for evidence.'),
 });
 
 export const agentMediaTwinSchema = z.object({
@@ -49,6 +64,17 @@ export const agentMediaTwinSchema = z.object({
       available: z.boolean(),
       skipped_reason: z.string().optional(),
       lines: z.array(ocrLineSchema),
+    })
+    .optional(),
+  region_evidence: z
+    .object({
+      bbox: boundingBoxSchema,
+      dimensions: imageDimensionsSchema,
+      region_hash: z.string(),
+      mime: z.string(),
+      route: z.string(),
+      resized: z.boolean().optional(),
+      image_base64: z.string().optional(),
     })
     .optional(),
   trust_warnings: z.array(z.string()),
