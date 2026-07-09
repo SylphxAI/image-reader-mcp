@@ -1,4 +1,4 @@
-import { existsSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { runDoctor } from '../src/doctor.js';
 import { IMAGE_SAFETY_LIMITS } from '../src/utils/safety.js';
@@ -147,6 +147,7 @@ async function main(): Promise<void> {
   );
 
   const report = await buildReleaseGateReport(artifactDir);
+  mkdirSync(artifactDir, { recursive: true });
   const outputPath = path.join(artifactDir, ARTIFACT_FILE);
 
   writeFileSync(outputPath, `${JSON.stringify(report, null, 2)}\n`, 'utf8');

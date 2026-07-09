@@ -1,0 +1,70 @@
+{
+  "profile": "image_reader_release_gate",
+  "generated_at": "2026-07-09T04:02:50.648Z",
+  "artifact_dir": "/home/codex/src/github.com/SylphxAI/image-reader-mcp/benchmark-artifacts",
+  "status": "passed",
+  "summary": {
+    "total": 9,
+    "passed": 9,
+    "failed": 0
+  },
+  "checks": [
+    {
+      "id": "package:read_image_bin",
+      "status": "passed",
+      "message": "package.json exposes the image-reader-mcp bin entry",
+      "evidence": {
+        "bin": "./dist/index.js"
+      }
+    },
+    {
+      "id": "safety:byte_limit",
+      "status": "passed",
+      "message": "32 MiB file byte safety limit is configured",
+      "evidence": {
+        "maxFileBytes": 33554432
+      }
+    },
+    {
+      "id": "safety:pixel_limit",
+      "status": "passed",
+      "message": "64 megapixel safety budget is configured",
+      "evidence": {
+        "maxPixels": 67108864
+      }
+    },
+    {
+      "id": "fixtures:sample_png",
+      "status": "passed",
+      "message": "Checked-in image fixture scaffold exists for deterministic handler tests"
+    },
+    {
+      "id": "examples:metadata_request",
+      "status": "passed",
+      "message": "examples/metadata-only-request.json documents a metadata-only read_image call"
+    },
+    {
+      "id": "examples:ocr_request",
+      "status": "passed",
+      "message": "examples/ocr-request.json documents an OCR-enabled read_image call"
+    },
+    {
+      "id": "examples:response_shape",
+      "status": "passed",
+      "message": "examples/sample-agent-media-twin.json documents the Agent Media Twin response shape"
+    },
+    {
+      "id": "doctor:sharp",
+      "status": "passed",
+      "message": "doctor reports sharp decode pipeline is available",
+      "evidence": {
+        "doctorStatus": "ready"
+      }
+    },
+    {
+      "id": "doctor:safety_limits",
+      "status": "passed",
+      "message": "doctor reports safety limits are configured"
+    }
+  ]
+}

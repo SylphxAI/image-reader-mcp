@@ -9,7 +9,7 @@ describe('README discovery surfaces', () => {
 
     expect(readme).toContain('Did it see the truth?');
     expect(readme).toContain('## Why not vision LLM guess?');
-    expect(readme).toContain('22 tests');
+    expect(readme).toContain('23 tests');
     expect(readme).toMatch(/Star the repo|Star this repo/);
     expect(readme).not.toMatch(/Listed on \[MCP Servers\]/);
     expect(readme).toContain('Not listed yet');
