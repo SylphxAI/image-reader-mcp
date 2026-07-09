@@ -34,8 +34,11 @@ redacted, what is uncertain, and how to inspect the source region again.
 ## Runtime Direction
 
 Rust should own decode, metadata parsing, hashing, resizing, crop extraction,
-color/profile inspection, decompression limits, and batch operations. The
-TypeScript MCP adapter may remain while provider and protocol contracts mature.
+color/profile inspection, decompression limits, batch operations, and MCP
+serving through `modelcontextprotocol/rust-sdk` / `rmcp`.
+
+TypeScript can remain only for generated clients, compatibility wrappers, and
+package-transition tests. It is not the target MCP adapter runtime.
 
 WASM is appropriate for sandboxed image transforms only when host capabilities
 and performance are explicit.
@@ -54,6 +57,7 @@ and performance are explicit.
 
 - Implement native image probe, hash, EXIF, orientation, resize, thumbnail, and
   crop primitives.
+- Add Rust MCP handlers for `read_image` and follow-up crop/region operations.
 - Add decompression, malformed-file, and oversized-input tests.
 - Add golden fixtures for deterministic metadata and crop output.
 
@@ -74,8 +78,7 @@ and performance are explicit.
 
 ### Phase 4: Native Distribution
 
-- Publish platform-specific optional binary packages when Rust core becomes the
-  default.
+- Publish platform-specific optional binary packages for the Rust MCP server.
 - Add `doctor` diagnostics for native engine, OCR provider, and permission
   issues.
 - Publish benchmark fixtures for probe, OCR, crop, and batch operations.
