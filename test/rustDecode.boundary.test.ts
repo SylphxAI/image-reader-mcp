@@ -1,12 +1,12 @@
-import { beforeAll, afterAll, describe, expect, it } from 'bun:test';
+import { afterAll, beforeAll, describe, expect, it } from 'bun:test';
 import { execSync } from 'node:child_process';
 import path from 'node:path';
-import { readImage } from '../src/handlers/readImage.js';
 import {
   cropRegionViaRustEngine,
   isRustCliAvailable,
   shouldUseRustDecodeEngine,
 } from '../src/engine/rust-decode.js';
+import { readImage } from '../src/handlers/readImage.js';
 import type { AgentMediaTwin } from '../src/schemas/readImage.js';
 
 const repoRoot = path.resolve(import.meta.dirname, '..');

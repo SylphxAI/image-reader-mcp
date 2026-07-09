@@ -2,8 +2,8 @@ import { spawnSync } from 'node:child_process';
 import { existsSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { ErrorCode, ImageError } from '../utils/errors.js';
 import type { BoundingBox } from '../schemas/readImage.js';
+import { ErrorCode, ImageError } from '../utils/errors.js';
 
 export type RustImageProbe = {
   format: string;
@@ -103,10 +103,7 @@ const invokeRustCli = (tool: string, input: Record<string, unknown>): unknown =>
 const mapErrorCode = (code: string): ErrorCode =>
   code === 'INVALID_PARAMS' ? ErrorCode.InvalidParams : ErrorCode.InvalidRequest;
 
-export function probeImageViaRustEngine(
-  filePath: string,
-  maxFileBytes: number
-): RustImageProbe {
+export function probeImageViaRustEngine(filePath: string, maxFileBytes: number): RustImageProbe {
   const envelope = invokeRustCli('image_probe', {
     path: filePath,
     max_file_bytes: maxFileBytes,

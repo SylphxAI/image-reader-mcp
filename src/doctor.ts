@@ -1,7 +1,7 @@
+import { spawnSync } from 'node:child_process';
 import { existsSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { spawnSync } from 'node:child_process';
 import sharp from 'sharp';
 import { resolveRustCliBinary } from './engine/rust-decode.js';
 import { IMAGE_SAFETY_LIMITS } from './utils/safety.js';
@@ -139,7 +139,8 @@ const probeRustDecodeFlag = (): DoctorCheck => {
     return {
       id: 'rust_decode_flag',
       status: 'ok',
-      message: 'IMAGE_READER_USE_RUST_DECODE=1 routes probe and region evidence through the Rust core.',
+      message:
+        'IMAGE_READER_USE_RUST_DECODE=1 routes probe and region evidence through the Rust core.',
     };
   }
 
