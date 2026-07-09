@@ -2,13 +2,17 @@ import fs, { stat } from 'node:fs/promises';
 import path from 'node:path';
 import exifr from 'exifr';
 import sharp from 'sharp';
+import {
+  probeImageViaRustEngine,
+  shouldUseRustDecodeEngine,
+} from '../engine/rust-decode.js';
 import { text, tool, toolError } from '../mcp.js';
 import { type AgentMediaTwin, readImageArgsSchema } from '../schemas/readImage.js';
 import { ErrorCode, ImageError } from '../utils/errors.js';
 import { collectTrustWarnings, redactGpsFields } from '../utils/metadata.js';
 import { runTesseractOcr } from '../utils/ocr.js';
 import { resolvePath } from '../utils/pathUtils.js';
-import { validateImageSafety } from '../utils/safety.js';
+import { IMAGE_SAFETY_LIMITS, validateImageSafety } from '../utils/safety.js';
 
 const mimeFromFormat = (format: string | undefined): string => {
   switch (format) {
@@ -95,45 +99,82 @@ export const readImage = tool()
       const fileStat = await stat(resolvedPath);
       validateImageSafety({ fileSizeBytes: fileStat.size });
 
-      const image = sharp(resolvedPath, { failOn: 'none' });
-      const metadata = await image.metadata();
-      validateImageSafety({
-        fileSizeBytes: fileStat.size,
-        width: metadata.width,
-        height: metadata.height,
-      });
       const includeMetadata = input.include_metadata ?? true;
       const includeOcr = input.include_ocr ?? false;
       const ocrLanguages = input.ocr_languages ?? ['eng'];
+      const useRustDecode = shouldUseRustDecodeEngine();
 
-      const { metadata: extractedMetadata, trustWarnings } = await readMetadata(
-        resolvedPath,
-        includeMetadata
-      );
+      let twin: AgentMediaTwin;
 
-      const twin: AgentMediaTwin = {
-        filename: path.basename(resolvedPath),
-        mime: mimeFromFormat(metadata.format),
-        dimensions: {
-          width: metadata.width ?? 0,
-          height: metadata.height ?? 0,
-        },
-        trust_warnings: [...trustWarnings],
-      };
+      if (useRustDecode) {
+        const probe = probeImageViaRustEngine(resolvedPath, IMAGE_SAFETY_LIMITS.maxFileBytes);
+        validateImageSafety({
+          fileSizeBytes: probe.fileSize,
+          width: probe.width,
+          height: probe.height,
+        });
 
-      if (metadata.orientation !== undefined) {
-        twin.orientation = metadata.orientation;
-      }
-      if (metadata.space !== undefined) {
-        twin.color_space = metadata.space;
-      }
-      if (metadata.hasAlpha !== undefined) {
-        twin.has_alpha = metadata.hasAlpha;
-      }
-      if (extractedMetadata !== undefined) {
-        twin.metadata = extractedMetadata;
-      }
+        const { metadata: extractedMetadata, trustWarnings } = await readMetadata(
+          resolvedPath,
+          includeMetadata
+        );
 
+        twin = {
+          filename: path.basename(resolvedPath),
+          mime: probe.mime,
+          dimensions: {
+            width: probe.width,
+            height: probe.height,
+          },
+          has_alpha: probe.hasAlpha,
+          color_space: probe.colorType,
+          trust_warnings: [
+            `Decode route: ${probe.route} (source hash ${probe.sourceHash.slice(0, 12)}…).`,
+            ...trustWarnings,
+          ],
+        };
+
+        if (extractedMetadata !== undefined) {
+          twin.metadata = extractedMetadata;
+        }
+      } else {
+        const image = sharp(resolvedPath, { failOn: 'none' });
+        const metadata = await image.metadata();
+        validateImageSafety({
+          fileSizeBytes: fileStat.size,
+          width: metadata.width,
+          height: metadata.height,
+        });
+
+        const { metadata: extractedMetadata, trustWarnings } = await readMetadata(
+          resolvedPath,
+          includeMetadata
+        );
+
+        twin = {
+          filename: path.basename(resolvedPath),
+          mime: mimeFromFormat(metadata.format),
+          dimensions: {
+            width: metadata.width ?? 0,
+            height: metadata.height ?? 0,
+          },
+          trust_warnings: [...trustWarnings],
+        };
+
+        if (metadata.orientation !== undefined) {
+          twin.orientation = metadata.orientation;
+        }
+        if (metadata.space !== undefined) {
+          twin.color_space = metadata.space;
+        }
+        if (metadata.hasAlpha !== undefined) {
+          twin.has_alpha = metadata.hasAlpha;
+        }
+
+        if (extractedMetadata !== undefined) {
+          twin.metadata = extractedMetadata;
+        }
+      }
       if (twin.dimensions.width <= 0 || twin.dimensions.height <= 0) {
         throw new ImageError(
           ErrorCode.InvalidRequest,

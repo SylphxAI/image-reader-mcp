@@ -74,6 +74,13 @@ export async function buildReleaseGateReport(artifactDir: string): Promise<Relea
 
   addCheck(
     checks,
+    'rust:decode_core',
+    fileExists('crates/image-reader-core/src/lib.rs'),
+    'Rust image-reader-core decode engine is present',
+  );
+
+  addCheck(
+    checks,
     'safety:pixel_limit',
     IMAGE_SAFETY_LIMITS.maxPixels === 64 * 1024 * 1024,
     '64 megapixel safety budget is configured',

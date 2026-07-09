@@ -1,6 +1,12 @@
+import { existsSync } from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { spawnSync } from 'node:child_process';
 import sharp from 'sharp';
+import { resolveRustCliBinary } from './engine/rust-decode.js';
 import { IMAGE_SAFETY_LIMITS } from './utils/safety.js';
+
+const here = path.dirname(fileURLToPath(import.meta.url));
 
 export type DoctorStatus = 'ok' | 'warn' | 'fail';
 
@@ -92,6 +98,34 @@ const probeSafetyLimits = (): DoctorCheck => {
   };
 };
 
+const probeRustDecodeCli = (): DoctorCheck => {
+  const binary = resolveRustCliBinary();
+  if (binary !== 'image-reader-cli' && existsSync(binary)) {
+    return {
+      id: 'rust_decode_cli',
+      status: 'ok',
+      message: `Rust decode CLI is available at ${binary}.`,
+    };
+  }
+
+  const release = path.join(here, '../target/release/image-reader-cli');
+  const debug = path.join(here, '../target/debug/image-reader-cli');
+  if (existsSync(release) || existsSync(debug)) {
+    return {
+      id: 'rust_decode_cli',
+      status: 'ok',
+      message: 'Rust decode CLI is built locally.',
+    };
+  }
+
+  return {
+    id: 'rust_decode_cli',
+    status: 'warn',
+    message:
+      'Rust decode CLI is not built. Run `cargo build --release` to enable IMAGE_READER_USE_RUST_DECODE=1.',
+  };
+};
+
 const probeNode = (): DoctorCheck => {
   const version = process.versions.node;
   const major = Number.parseInt(version.split('.')[0] ?? '0', 10);
@@ -121,7 +155,13 @@ const aggregateStatus = (checks: DoctorCheck[]): DoctorReport['status'] => {
 };
 
 export async function runDoctor(version: string): Promise<DoctorReport> {
-  const checks = [probeNode(), probeSafetyLimits(), await probeSharp(), probeTesseract()];
+  const checks = [
+    probeNode(),
+    probeSafetyLimits(),
+    probeRustDecodeCli(),
+    await probeSharp(),
+    probeTesseract(),
+  ];
   return {
     profile: 'image_reader_doctor',
     version,
