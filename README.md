@@ -15,6 +15,8 @@ trust warnings you can cite without asking a vision LLM to guess.
 
 **Local-first** · **One smart `read_image` call** · **Evidence with bbox + provenance** · **23 tests**
 
+SOTA family roadmap: [docs/roadmap/sota-family-roadmap.md](docs/roadmap/sota-family-roadmap.md).
+
 [⭐ Star this repo](https://github.com/SylphxAI/image-reader-mcp) if agents should read images with facts, not vision-model guesses.
 · [Quick start](#quick-start) · [See it work](#see-it-work) · [Why not vision LLM guess?](#why-not-vision-llm-guess)
 
