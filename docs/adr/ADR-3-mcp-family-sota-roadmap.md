@@ -23,10 +23,16 @@ trust evidence. It does not own open-ended visual interpretation by default.
 
 - Smart Reader routes images but does not own image evidence semantics.
 - Rust is the target for decode, metadata, crop, hash, redaction, and batch hot
-  paths.
+  paths, plus MCP serving through `modelcontextprotocol/rust-sdk` / `rmcp`.
 - Optional OCR or vision providers must expose route, confidence, privacy, and
   warning data.
 - Future work must preserve the read-vs-interpret boundary.
+
+## Amendment: Rust-Native MCP Runtime
+
+The family runtime direction now targets Rust MCP servers. Image Reader MCP may
+keep TypeScript compatibility wrappers during migration, but the target MCP
+server runtime is Rust with `rmcp`.
 
 ## Verification
 
