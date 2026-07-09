@@ -1,11 +1,11 @@
 {
   "profile": "image_reader_release_gate",
-  "generated_at": "2026-07-09T10:10:54.912Z",
+  "generated_at": "2026-07-09T10:21:16.067Z",
   "artifact_dir": "/home/codex/src/github.com/SylphxAI/image-reader-mcp/benchmark-artifacts",
   "status": "passed",
   "summary": {
-    "total": 15,
-    "passed": 15,
+    "total": 16,
+    "passed": 16,
     "failed": 0
   },
   "checks": [
@@ -103,6 +103,14 @@
       "id": "doctor:safety_limits",
       "status": "passed",
       "message": "doctor reports safety limits are configured"
+    },
+    {
+      "id": "contract:reader_evidence_dep",
+      "status": "passed",
+      "message": "image-reader depends on @sylphx/reader-evidence shared schema package",
+      "evidence": {
+        "dependency": "file:../reader-evidence"
+      }
     }
   ]
 }

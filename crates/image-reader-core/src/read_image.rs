@@ -2,7 +2,10 @@ use std::path::{Path, PathBuf};
 
 use serde::Serialize;
 
-use crate::{crop_region, probe_image, ProbeError, RegionBBox, RegionEvidence};
+use crate::{
+    build_read_image_envelope, crop_region, probe_image, AgentEvidenceEnvelope, EnvelopeInput,
+    ProbeError, RegionBBox, RegionEvidence,
+};
 
 pub const READ_IMAGE_ROUTE: &str = "rust-read-image-v1";
 pub const DEFAULT_MAX_FILE_BYTES: u64 = 32 * 1024 * 1024;
@@ -64,8 +67,38 @@ pub struct AgentMediaTwin {
     pub trust_warnings: Vec<String>,
 }
 
-pub fn read_image(path: &Path, options: ReadImageOptions) -> Result<AgentMediaTwin, ProbeError> {
+#[derive(Debug, Clone, Serialize)]
+pub struct ReadImageSuccess {
+    pub twin: AgentMediaTwin,
+    pub envelope: AgentEvidenceEnvelope,
+}
+
+pub fn read_image_with_envelope(
+    path: &Path,
+    options: ReadImageOptions,
+) -> Result<ReadImageSuccess, ProbeError> {
     let probe = probe_image(path, options.max_file_bytes)?;
+    let twin = read_image_from_probe(path, &probe, &options)?;
+    let envelope = build_read_image_envelope(EnvelopeInput {
+        source_path: path,
+        detected_format: probe.mime.clone(),
+        source_hash: Some(probe.source_hash.clone()),
+        decode_route: probe.route.clone(),
+        warnings: twin.trust_warnings.clone(),
+        twin: twin.clone(),
+    });
+    Ok(ReadImageSuccess { twin, envelope })
+}
+
+pub fn read_image(path: &Path, options: ReadImageOptions) -> Result<AgentMediaTwin, ProbeError> {
+    Ok(read_image_with_envelope(path, options)?.twin)
+}
+
+fn read_image_from_probe(
+    path: &Path,
+    probe: &crate::ImageProbe,
+    options: &ReadImageOptions,
+) -> Result<AgentMediaTwin, ProbeError> {
     let filename = path
         .file_name()
         .and_then(|value| value.to_str())
@@ -85,7 +118,7 @@ pub fn read_image(path: &Path, options: ReadImageOptions) -> Result<AgentMediaTw
     }
 
     let mut region_evidence = None;
-    if let Some(bbox) = options.region {
+    if let Some(bbox) = options.region.as_ref().copied() {
         let evidence = crop_region(
             path,
             options.max_file_bytes,
@@ -104,13 +137,13 @@ pub fn read_image(path: &Path, options: ReadImageOptions) -> Result<AgentMediaTw
 
     Ok(AgentMediaTwin {
         filename,
-        mime: probe.mime,
+        mime: probe.mime.clone(),
         dimensions: ImageDimensions {
             width: probe.width,
             height: probe.height,
         },
         has_alpha: Some(probe.has_alpha),
-        color_space: Some(probe.color_type),
+        color_space: Some(probe.color_type.clone()),
         region_evidence,
         trust_warnings,
     })
@@ -131,7 +164,7 @@ fn map_region_evidence(evidence: RegionEvidence) -> RegionEvidenceTwin {
     }
 }
 
-pub fn read_image_from_value(input: &serde_json::Value) -> Result<AgentMediaTwin, ProbeError> {
+pub fn read_image_from_value(input: &serde_json::Value) -> Result<ReadImageSuccess, ProbeError> {
     let path = input
         .get("path")
         .and_then(|value| value.as_str())
@@ -164,7 +197,7 @@ pub fn read_image_from_value(input: &serde_json::Value) -> Result<AgentMediaTwin
 
     let region = input.get("region").map(parse_region_bbox).transpose()?;
 
-    read_image(
+    read_image_with_envelope(
         PathBuf::from(path).as_path(),
         ReadImageOptions {
             max_file_bytes,

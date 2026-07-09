@@ -17,6 +17,11 @@ type CliEnvelope = {
   probe?: { route?: string; mime?: string };
   region_evidence?: { route?: string; regionHash?: string };
   twin?: { mime?: string; trust_warnings?: string[]; region_evidence?: { route?: string } };
+  envelope?: {
+    subject?: string;
+    delegation?: { delegated_tool?: string; reader_package?: string };
+    result?: { mime?: string };
+  };
 };
 
 const invokeCli = (tool: string, input: Record<string, unknown>, env: NodeJS.ProcessEnv) => {
@@ -92,6 +97,8 @@ describe('shipped path matrix (Rust core, no legacy flags)', () => {
     expect(envelope.status).toBe('ok');
     expect(envelope.route).toBe('rust-read-image-v1');
     expect(envelope.twin?.mime).toBe('image/png');
+    expect(envelope.envelope?.delegation?.delegated_tool).toBe('read_image');
+    expect(envelope.envelope?.delegation?.reader_package).toBe('@sylphx/image-reader-mcp');
     expect(
       envelope.twin?.trust_warnings?.some((warning) => warning.includes('rust-probe'))
     ).toBe(true);

@@ -3,7 +3,7 @@ use rmcp::model::CallToolResult;
 use serde_json::Value;
 
 pub fn read_image(args: Value) -> Result<CallToolResult, rmcp::ErrorData> {
-    let twin = read_image_from_value(&args).map_err(|error| match error.code {
+    let success = read_image_from_value(&args).map_err(|error| match error.code {
         ProbeErrorCode::InvalidParams => rmcp::ErrorData::invalid_params(error.message, None),
         ProbeErrorCode::InvalidRequest => {
             rmcp::ErrorData::invalid_request(error.message, None)
@@ -14,7 +14,8 @@ pub fn read_image(args: Value) -> Result<CallToolResult, rmcp::ErrorData> {
         "tool": "read_image",
         "route": READ_IMAGE_ROUTE,
         "engine": image_reader_core::ENGINE_NAME,
-        "twin": twin,
+        "twin": success.twin,
+        "envelope": success.envelope,
     });
 
     Ok(CallToolResult::structured(structured))

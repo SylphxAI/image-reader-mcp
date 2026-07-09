@@ -231,6 +231,15 @@ export async function buildReleaseGateReport(artifactDir: string): Promise<Relea
     'doctor reports safety limits are configured'
   );
 
+  addCheck(
+    checks,
+    'contract:reader_evidence_dep',
+    typeof pkg.dependencies?.['@sylphx/reader-evidence'] === 'string' &&
+      fileExists('node_modules/@sylphx/reader-evidence/src/envelope.ts'),
+    'image-reader depends on @sylphx/reader-evidence shared schema package',
+    { dependency: pkg.dependencies?.['@sylphx/reader-evidence'] }
+  );
+
   const passed = checks.filter((check) => check.status === 'passed').length;
   const failed = checks.length - passed;
 

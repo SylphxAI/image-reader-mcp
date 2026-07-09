@@ -1,6 +1,6 @@
 use image_reader_core::{
-    crop_region, probe_image, read_image_from_value, ProbeErrorCode, RegionBBox, ENGINE_NAME,
-    ENGINE_VERSION, READ_IMAGE_ROUTE,
+    crop_region, probe_image, ProbeErrorCode, RegionBBox, ENGINE_NAME, ENGINE_VERSION,
+    READ_IMAGE_ROUTE,
 };
 use serde::Deserialize;
 use std::io::{self, Read};
@@ -27,6 +27,7 @@ struct ReadImageSuccessEnvelope {
     version: &'static str,
     route: &'static str,
     twin: image_reader_core::AgentMediaTwin,
+    envelope: image_reader_core::AgentEvidenceEnvelope,
 }
 
 #[derive(Debug, serde::Serialize)]
@@ -218,13 +219,14 @@ fn main() {
     };
 
     let output = match request.tool.as_str() {
-        "read_image" => match read_image_from_value(&request.input) {
-            Ok(twin) => serde_json::to_string(&ReadImageSuccessEnvelope {
+        "read_image" => match image_reader_core::read_image_from_value(&request.input) {
+            Ok(success) => serde_json::to_string(&ReadImageSuccessEnvelope {
                 status: "ok",
                 engine: ENGINE_NAME,
                 version: ENGINE_VERSION,
                 route: READ_IMAGE_ROUTE,
-                twin,
+                twin: success.twin,
+                envelope: success.envelope,
             })
             .expect("serialize"),
             Err(error) => serde_json::to_string(&ErrorEnvelope {

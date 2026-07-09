@@ -1,9 +1,12 @@
 //! Rust image probe and hash engine for image-reader-mcp.
 
+pub mod envelope;
 pub mod read_image;
 
+pub use envelope::{build_read_image_envelope, AgentEvidenceEnvelope, EnvelopeInput};
 pub use read_image::{
-    read_image, read_image_from_value, AgentMediaTwin, ReadImageOptions, READ_IMAGE_ROUTE,
+    read_image, read_image_from_value, read_image_with_envelope, AgentMediaTwin, ReadImageOptions,
+    ReadImageSuccess, READ_IMAGE_ROUTE,
 };
 
 use std::fs;
@@ -19,7 +22,7 @@ pub const ENGINE_VERSION: &str = "0.1.0";
 pub const DECODE_ROUTE: &str = "rust-probe";
 pub const CROP_ROUTE: &str = "rust-crop";
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct RegionBBox {
     pub x: u32,
