@@ -1,0 +1,375 @@
+{
+  "schemaVersion": 3,
+  "repo": "SylphxAI/image-reader-mcp",
+  "repoLedgerPath": "docs/specs/migration-ledger.json",
+  "lockedAt": "2026-07-10T12:00:00Z",
+  "programSpec": {
+    "id": "rust-first-fleet-migration",
+    "controlPlaneRepo": "SylphxAI/rust-first-fleet-control-plane",
+    "programSpecPath": "PROGRAM-SPEC.json",
+    "completionStandard": "COMPLETION-STANDARD.md",
+    "parityStandard": "PARITY-VERIFICATION-STANDARD.md"
+  },
+  "adrRefs": [
+    {
+      "path": "docs/adr/ADR-PROPOSED-fleet-image-reader-mcp-rust-north-star.md",
+      "status": "proposed",
+      "note": "North Star ADR on disk \u2014 pending ADR PR; ADR number will equal introducing PR number per Doctrine"
+    }
+  ],
+  "reauditRef": "rej-010",
+  "verificationRef": "verification/image-reader-cycle64-stdio-transport-rust-impl.json",
+  "inventorySource": [
+    "mcp-tools",
+    "manual"
+  ],
+  "inScopeBoundary": {
+    "includeGlobs": [
+      "src/**",
+      "crates/image-reader-core/**",
+      "crates/image-reader-cli/**",
+      "crates/image-reader-mcp-server/**",
+      "bin/**"
+    ],
+    "excludeGlobs": [
+      "node_modules/**",
+      "dist/**"
+    ]
+  },
+  "capabilities": [
+    {
+      "id": "transport/web-mcp-http",
+      "domain": "transport",
+      "weight": 5,
+      "state": "rust_impl",
+      "proof": {
+        "status": "missing",
+        "dependencyGlobs": [
+          "crates/image-reader-mcp-server/**",
+          "bin/image-reader-mcp",
+          "scripts/differential/**",
+          "scripts/run-image-reader-differential.sh"
+        ],
+        "staleReason": "rej-010 re-audit \u2014 prior authority_rust lacked SHA-bound differential proof",
+        "verificationRef": "scripts/run-image-reader-differential.sh"
+      },
+      "promotionHold": {
+        "active": true,
+        "reason": "rej-010: differential harness landed \u2014 awaiting differential_green at bound SHAs",
+        "rejectionRef": "rej-010",
+        "since": "2026-07-10T21:30:00Z"
+      },
+      "rustSurface": "crates/image-reader-mcp-server/src/http_transport.rs (rmcp StreamableHttpService)",
+      "parityTest": "test/httpTransport.matrix.test.ts; test/integration/http-transport.test.ts; test/check-no-ts-http-backend.test.ts; cargo test -p image-reader-mcp-server",
+      "differentialTest": "crates/image-reader-mcp-server/tests/image_reader_mcp_differential.rs#image_reader_mcp_differential_matches_ts_oracle",
+      "prodProbe": "benchmark:release-gate \u2192 mcp:rust_web_http_transport; mcp:http_transport_parity; mcp:http_authority_rust",
+      "branch": "feat/rust-web-mcp-http-transport",
+      "prUrl": "https://github.com/SylphxAI/image-reader-mcp/pull/11",
+      "notes": "S2: MCP_TRANSPORT=http routes exclusively to Rust rmcp on the shipped bin path; check-no-ts-http-backend gate blocks parallel TS HTTP authority. rej-010: SHA-bound differential harness landed (TS contract oracle vs rmcp HTTP probes). authority_rust NOT claimed until differential_green + prod smoke."
+    },
+    {
+      "id": "transport/stdio-rust-rmcp",
+      "domain": "transport",
+      "weight": 4,
+      "state": "rust_impl",
+      "proof": {
+        "status": "missing",
+        "dependencyGlobs": [
+          "crates/image-reader-mcp-server/**",
+          "bin/image-reader-mcp",
+          "scripts/differential/**",
+          "scripts/run-image-reader-differential.sh"
+        ],
+        "staleReason": "rej-010 re-audit \u2014 prior parity_proven lacked SHA-bound differential proof",
+        "verificationRef": "scripts/run-image-reader-differential.sh"
+      },
+      "promotionHold": {
+        "active": true,
+        "reason": "rej-010: differential harness landed \u2014 awaiting differential_green at bound SHAs",
+        "rejectionRef": "rej-010",
+        "since": "2026-07-10T21:30:00Z"
+      },
+      "rustSurface": "crates/*-mcp-server/src/main.rs (rmcp::transport::stdio())",
+      "parityTest": "crates/image-reader-mcp-server/tests/read_image_golden_parity.rs; test/shippedPath.matrix.test.ts; test/tsAdapterDeletion.matrix.test.ts",
+      "differentialTest": "crates/image-reader-mcp-server/tests/image_reader_mcp_differential.rs#image_reader_mcp_differential_matches_ts_oracle",
+      "prodProbe": "benchmark:release-gate \u2192 mcp:rust_adapter_default; mcp:rmcp_read_image_parity",
+      "notes": "Default npm bin launches Rust rmcp stdio server; read_image golden parity proven on rmcp handler. rej-010 cycle29: stdioProbe live probes added to differential harness. proof.status missing \u2014 NO promotion."
+    },
+    {
+      "id": "transport/stdio-ts-adapter",
+      "domain": "transport",
+      "weight": 4,
+      "state": "ts_only",
+      "tsSurface": "src/index.ts",
+      "parityTest": "scripts/check-ts-adapter-deletion-ready.sh; scripts/check-no-ts-stdio-mcp.sh; test/check-no-ts-stdio-mcp.test.ts; test/tsAdapterDeletion.matrix.test.ts",
+      "notes": "Opt-in TS stdio MCP adapter (IMAGE_READER_MCP_TRANSPORT=ts env). S3 prep complete: deletion gates wired; ts_deleted NOT claimed \u2014 pending stacked PR merge + benchmark:release-gate prod transcript per rej-001."
+    },
+    {
+      "id": "tool/read_image",
+      "domain": "mcp-tools",
+      "weight": 5,
+      "state": "rust_impl",
+      "proof": {
+        "status": "missing",
+        "dependencyGlobs": [
+          "crates/image-reader-core/**",
+          "src/engine/rust-decode.ts",
+          "test/fixtures/read-image-golden.json",
+          "scripts/differential/**",
+          "scripts/run-image-reader-differential.sh"
+        ],
+        "staleReason": "rej-010 re-audit \u2014 prior parity_proven lacked SHA-bound differential proof",
+        "verificationRef": "scripts/run-image-reader-differential.sh"
+      },
+      "promotionHold": {
+        "active": true,
+        "reason": "rej-010: differential harness landed \u2014 awaiting differential_green at bound SHAs",
+        "rejectionRef": "rej-010",
+        "since": "2026-07-10T21:30:00Z"
+      },
+      "tsSurface": "src/handlers/readImage.ts",
+      "rustSurface": "crates/image-reader-mcp-server/src/read_image.rs",
+      "parityTest": "test/fixtures/read-image-golden.json; crates/image-reader-core/tests/read_image_golden_parity.rs; crates/image-reader-mcp-server/tests/read_image_golden_parity.rs; test/readImage.parity.test.ts; test/integration/http-transport.test.ts",
+      "differentialTest": "crates/image-reader-mcp-server/tests/image_reader_mcp_differential.rs#image_reader_mcp_differential_matches_ts_oracle",
+      "prodProbe": "benchmark:release-gate \u2192 mcp:read_image_golden_parity; mcp:rmcp_read_image_parity; mcp:read_image_cross_parity; mcp:http_transport_parity",
+      "notes": "Golden fixture parity proven across Rust core, CLI, rmcp handler, TS rust-decode route, and HTTP tools/call. rej-010: SHA-bound differential harness landed (TS image-reader-cli oracle vs image-reader-core + rmcp). ts_deleted not claimed."
+    }
+  ],
+  "summary": {
+    "total": 4,
+    "ts_only": 1,
+    "contracted": 0,
+    "rust_impl": 3,
+    "parity_proven": 0,
+    "authority_rust": 0,
+    "ts_deleted": 0,
+    "proof_stale": 0,
+    "proof_missing": 3,
+    "completion_progress": 0.0,
+    "authority_progress": 0.0,
+    "verified_authority_progress": 0.0,
+    "weighted_progress": 0.589,
+    "cycle49_delta": {
+      "rust_impl_verified": 1,
+      "slice": "transport.web-mcp-http",
+      "verificationRef": "verification/image-reader-cycle49-http-transport-rust-impl.json",
+      "notes": "rej-010 rust_impl ONLY \u2014 cycle49 highest-value unimplemented slice: transport.web-mcp-http bounded differential (httpProbe + transport contract)"
+    },
+    "cycle50_delta": {
+      "rust_impl_verified": 1,
+      "slice": "tool.read_image",
+      "verificationRef": "verification/image-reader-cycle50-read-image-rust-impl.json",
+      "notes": "rej-010 rust_impl ONLY \u2014 cycle50 next highest-value slice: tool.read_image bounded differential (4 golden cases)"
+    },
+    "cycle62_delta": {
+      "rust_impl_verified": 1,
+      "slice": "transport.stdio-rust-rmcp",
+      "verificationRef": "verification/image-reader-cycle62-stdio-transport-rust-impl.json",
+      "notes": "rej-010 rust_impl ONLY \u2014 cycle62 next bounded slice: transport.stdio-rust-rmcp stdioProbe differential (4 cases)"
+    },
+    "cycle63_delta": {
+      "rust_impl_verified": 1,
+      "slice": "tool.read_image",
+      "verificationRef": "verification/image-reader-cycle63-read-image-rust-impl.json",
+      "notes": "rej-010 rust_impl ONLY \u2014 cycle63 harness metadata: tool.read_image bounded differential (4 cases)"
+    },
+    "cycle64_delta": {
+      "rust_impl_verified": 1,
+      "slice": "transport.stdio-rust-rmcp",
+      "verificationRef": "verification/image-reader-cycle64-stdio-transport-rust-impl.json",
+      "notes": "rej-010 rust_impl ONLY \u2014 cycle64 harness metadata: transport.stdio-rust-rmcp bounded differential re-verify (4 cases)"
+    }
+  },
+  "postMergeGate": {
+    "dependsOnPr": "https://github.com/SylphxAI/image-reader-mcp/pull/11",
+    "stackedBranch": "feat/rust-first-s3-stdio-ts-adapter-deleted",
+    "parentBranch": "feat/rust-web-mcp-http-transport",
+    "probeDoc": "probes/SylphxAI__image-reader-mcp-s3-ts-deleted.md",
+    "deletionReadyScript": "scripts/check-ts-adapter-deletion-ready.sh",
+    "retirementGateScript": "scripts/check-no-ts-stdio-mcp.sh",
+    "prodSmokeScript": "bun run benchmark:release-gate",
+    "verificationArtifact": "benchmark-artifacts/image_reader_release_gate.json",
+    "capabilitiesAfterMerge": [
+      "transport/stdio-ts-adapter"
+    ]
+  },
+  "slices": {
+    "S1": {
+      "status": "shipped",
+      "evidence": [
+        "test/fixtures/read-image-golden.json",
+        "test/readImage.parity.test.ts",
+        "crates/image-reader-core/tests/read_image_golden_parity.rs",
+        "crates/image-reader-mcp-server/tests/read_image_golden_parity.rs",
+        "test/integration/http-transport.test.ts",
+        "scripts/run-image-reader-differential.sh",
+        "scripts/differential/image-reader-mcp-oracle.ts"
+      ],
+      "notes": "tool/read_image rust_impl on disk; golden fixture parity across Rust core, CLI, rmcp handler, and TS rust-decode route. rej-010 differential harness landed for read_image golden corpus."
+    },
+    "S2": {
+      "status": "shipped",
+      "evidence": [
+        "scripts/check-no-ts-http-backend.sh",
+        "test/check-no-ts-http-backend.test.ts",
+        "test/integration/http-transport.test.ts",
+        "crates/image-reader-mcp-server/src/http_transport.rs",
+        "bin/image-reader-mcp",
+        "scripts/run-image-reader-differential.sh"
+      ],
+      "notes": "transport/web-mcp-http rust_impl on disk; HTTP bin path is Rust-only. rej-010 differential harness landed for HTTP transport contract + live probes."
+    },
+    "S3": {
+      "status": "shipped",
+      "evidence": [
+        "scripts/check-ts-adapter-deletion-ready.sh",
+        "scripts/check-no-ts-stdio-mcp.sh",
+        "test/check-no-ts-stdio-mcp.test.ts",
+        "test/tsAdapterDeletion.matrix.test.ts",
+        "crates/image-reader-mcp-server/tests/read_image_golden_parity.rs",
+        "bin/image-reader-mcp",
+        "src/index.ts"
+      ],
+      "notes": "cycle39: transport/stdio-ts-adapter deletion gates verified on disk (check-ts-adapter-deletion-ready + check-no-ts-stdio-mcp). TS stdio opt-in retained until stacked deletion PR merges. Ledger ts_deleted flip pending PR merge + prod smoke per rej-001."
+    },
+    "S4": {
+      "status": "shipped",
+      "evidence": [
+        "scripts/differential/fixtures/image-reader-mcp-corpus.json",
+        "scripts/differential/image-reader-mcp-oracle.ts",
+        "crates/image-reader-mcp-server/tests/image_reader_mcp_differential.rs",
+        "scripts/run-image-reader-differential.sh",
+        "docs/specs/image-reader-mcp-parity-slice.json",
+        "test/differentialHarness.matrix.test.ts"
+      ],
+      "notes": "cycle29 rej-010: transport/stdio-rust-rmcp stdioProbe differential extension. cycle37: stdio/web transport rust_impl + differential harness verified on disk (httpProbe + stdioProbe). rust_impl only \u2014 proof.status missing until differential_green at bound SHAs."
+    }
+  },
+  "cycle37": {
+    "boundedSlice": "transport.web-mcp-http|transport.stdio-rust-rmcp",
+    "status": "harness_landed_disk",
+    "evidenceRef": "/tmp/grok-goal-729a939ec6e2/implementer/cycle37-rust-impl/mcp-batch.json"
+  },
+  "cycle39": {
+    "boundedSlice": "tool.read_image|transport.web-mcp-http|transport.stdio-rust-rmcp",
+    "status": "harness_landed_disk",
+    "evidenceRef": "/tmp/grok-goal-729a939ec6e2/implementer/cycle39-mcp-wave2.json",
+    "deliverables": [
+      "docs/specs/image-reader-mcp-parity-slice.json",
+      "test/differentialHarness.matrix.test.ts",
+      "scripts/run-image-reader-differential.sh",
+      "crates/image-reader-mcp-server/tests/image_reader_mcp_differential.rs",
+      "scripts/check-ts-adapter-deletion-ready.sh",
+      "scripts/check-no-ts-stdio-mcp.sh"
+    ],
+    "notes": "cycle39 rej-010: S3 stdio-ts-adapter deletion gates + S4 differential harness re-verified on disk. ts_deleted NOT claimed (rej-001). proof.status missing until differential_green."
+  },
+  "promotionHold": {
+    "active": true,
+    "reason": "rej-010 promotion freeze \u2014 0 capabilities with differential_green or canary_green proof",
+    "rejectionRef": "rej-010",
+    "since": "2026-07-10T21:30:00Z"
+  },
+  "cycle45": {
+    "boundedSlice": "tool.read_image|transport.web-mcp-http|transport.stdio-rust-rmcp",
+    "status": "rust_impl_on_disk_verified",
+    "reauditRef": "rej-010",
+    "evidenceRef": "/tmp/grok-goal-729a939ec6e2/implementer/cycle45-mcp-reader-batch.json",
+    "deliverables": [
+      "docs/specs/image-reader-mcp-parity-slice.json",
+      "test/differentialHarness.matrix.test.ts",
+      "scripts/run-image-reader-differential.sh",
+      "scripts/differential/image-reader-mcp-oracle.ts",
+      "scripts/differential/fixtures/image-reader-mcp-corpus.json",
+      "crates/image-reader-mcp-server/tests/image_reader_mcp_differential.rs",
+      "scripts/check-no-ts-stdio-mcp.sh",
+      "scripts/check-no-ts-http-backend.sh"
+    ],
+    "harnessPath": "scripts/run-image-reader-differential.sh",
+    "notes": "cycle45 rej-010: read_image + HTTP/stdio transport rust_impl differential harness re-verified on disk. proof.status missing until differential_green at bound SHAs \u2014 NO promotion."
+  },
+  "cycle49Slice": "transport.web-mcp-http \u2014 bounded --slice entrypoint; bash scripts/run-image-reader-differential.sh --slice transport.web-mcp-http",
+  "cycle50Slice": "tool.read_image \u2014 bounded --slice entrypoint; bash scripts/run-image-reader-differential.sh --slice tool.read_image",
+  "cycle62Slice": "transport.stdio-rust-rmcp \u2014 bounded --slice entrypoint; bash scripts/run-image-reader-differential.sh --slice transport.stdio-rust-rmcp; proof.status missing; authority_rust blocked per rej-010",
+  "cycle49": {
+    "boundedSlice": "transport.web-mcp-http",
+    "status": "rust_impl_on_disk_verified",
+    "reauditRef": "rej-010",
+    "verificationRef": "verification/image-reader-cycle49-http-transport-rust-impl.json",
+    "deliverables": [
+      "scripts/run-image-reader-differential.sh",
+      "crates/image-reader-mcp-server/tests/image_reader_mcp_differential.rs",
+      "scripts/differential/image-reader-mcp-oracle.ts",
+      "scripts/differential/fixtures/image-reader-mcp-corpus.json",
+      "docs/specs/image-reader-mcp-parity-slice.json",
+      "test/differentialHarness.matrix.test.ts",
+      "scripts/check-no-ts-http-backend.sh"
+    ],
+    "harnessPath": "scripts/run-image-reader-differential.sh --slice transport.web-mcp-http",
+    "caseCounts": {
+      "httpProbe": 4,
+      "transportContractHttp": 2
+    },
+    "notes": "cycle49 rej-010: transport.web-mcp-http bounded differential harness on-disk verify. rust_impl ONLY \u2014 proof.status missing until differential_green at bound SHAs."
+  },
+  "cycle50": {
+    "boundedSlice": "tool.read_image",
+    "status": "rust_impl_on_disk_verified",
+    "reauditRef": "rej-010",
+    "verificationRef": "verification/image-reader-cycle50-read-image-rust-impl.json",
+    "harnessPath": "scripts/run-image-reader-differential.sh --slice tool.read_image",
+    "deliverables": [
+      "scripts/run-image-reader-differential.sh",
+      "crates/image-reader-mcp-server/tests/image_reader_mcp_differential.rs",
+      "scripts/differential/image-reader-mcp-oracle.ts",
+      "scripts/differential/fixtures/image-reader-mcp-corpus.json",
+      "docs/specs/image-reader-mcp-parity-slice.json",
+      "test/differentialHarness.matrix.test.ts",
+      "test/fixtures/read-image-golden.json"
+    ],
+    "caseCounts": {
+      "readImageTool": 4
+    },
+    "notes": "cycle50 rej-010: tool.read_image bounded differential harness on-disk verify. rust_impl ONLY \u2014 proof.status missing until differential_green at bound SHAs."
+  },
+  "cycle62": {
+    "boundedSlice": "transport.stdio-rust-rmcp",
+    "status": "rust_impl_on_disk_verified",
+    "reauditRef": "rej-010",
+    "verificationRef": "verification/image-reader-cycle62-stdio-transport-rust-impl.json",
+    "harnessPath": "scripts/run-image-reader-differential.sh --slice transport.stdio-rust-rmcp",
+    "deliverables": [
+      "scripts/run-image-reader-differential.sh",
+      "crates/image-reader-mcp-server/tests/image_reader_mcp_differential.rs",
+      "scripts/check-no-ts-stdio-mcp.sh"
+    ],
+    "caseCounts": {
+      "stdioProbe": 4
+    },
+    "notes": "cycle62 rej-010: transport.stdio-rust-rmcp bounded differential harness on-disk verify. rust_impl ONLY \u2014 proof.status missing until differential_green at bound SHAs."
+  },
+  "cycle63Slice": "tool.read_image \u2014 bounded --slice entrypoint; bash scripts/run-image-reader-differential.sh --slice tool.read_image",
+  "cycle64Slice": "transport.stdio-rust-rmcp \u2014 bounded --slice entrypoint; bash scripts/run-image-reader-differential.sh --slice transport.stdio-rust-rmcp; proof.status missing; authority_rust blocked per rej-010",
+  "cycle63": {
+    "boundedSlice": "tool.read_image",
+    "status": "rust_impl_on_disk_verified",
+    "reauditRef": "rej-010",
+    "verificationRef": "verification/image-reader-cycle63-read-image-rust-impl.json",
+    "harnessPath": "scripts/run-image-reader-differential.sh --slice tool.read_image",
+    "caseCounts": {
+      "readImageTool": 4
+    },
+    "notes": "cycle63 rej-010: tool.read_image bounded differential harness on-disk verify. rust_impl ONLY \u2014 proof.status missing until differential_green at bound SHAs."
+  },
+  "cycle64": {
+    "boundedSlice": "transport.stdio-rust-rmcp",
+    "status": "rust_impl_on_disk_verified",
+    "reauditRef": "rej-010",
+    "verificationRef": "verification/image-reader-cycle64-stdio-transport-rust-impl.json",
+    "harnessPath": "scripts/run-image-reader-differential.sh --slice transport.stdio-rust-rmcp",
+    "caseCounts": {
+      "stdioTransport": 4
+    },
+    "notes": "cycle64 rej-010: transport.stdio-rust-rmcp bounded differential harness on-disk verify. rust_impl ONLY \u2014 proof.status missing until differential_green at bound SHAs."
+  }
+}
