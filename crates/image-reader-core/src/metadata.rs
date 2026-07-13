@@ -398,4 +398,46 @@ mod tests {
         assert!(warnings.iter().any(|w| w.contains("Generative") || w.contains("synthetic") || w.contains("editing")), "{warnings:?}");
     }
 
+
+    #[test]
+    fn bw8_redact_value_nested_object_and_array_of_objects() {
+        use serde_json::json;
+        // Honest contract: scalars/arrays redact; objects use GPS-field map (non-gps keys preserved).
+        assert_eq!(redact_value(&json!(1)), json!("[redacted]"));
+        assert_eq!(redact_value(&json!([1, "x"])), json!(["[redacted]", "[redacted]"]));
+        let nested = redact_value(&json!({"a": 1, "GPSLatitude": 12.5, "b": [2, 3]}));
+        let obj = nested.as_object().unwrap();
+        assert_eq!(obj.get("a"), Some(&json!(1))); // non-gps preserved at object level
+        assert_eq!(obj.get("GPSLatitude"), Some(&json!("[redacted]")));
+        // array values under non-gps key preserved as-is (not re-entered via redact_value)
+        assert_eq!(obj.get("b"), Some(&json!([2, 3])));
+        // GPS-keyed array redacts via redact_value recursion
+        let gps_arr = redact_value(&json!({"coordinates": [1.0, 2.0]}));
+        let g = gps_arr.as_object().unwrap();
+        assert_eq!(g.get("coordinates"), Some(&json!(["[redacted]", "[redacted]"])));
+    }
+
+    #[test]
+    fn bw8_is_gps_key_false_positives_and_prefix() {
+        assert!(is_gps_key("GPS"));
+        assert!(is_gps_key("gps"));
+        assert!(is_gps_key("GPSInfo"));
+        assert!(!is_gps_key("ExposureTime"));
+        assert!(!is_gps_key("FocalLength"));
+        assert!(!is_gps_key(""));
+        assert!(is_gps_key("Latitude"));
+        assert!(is_gps_key("longitude"));
+    }
+
+    #[test]
+    fn bw8_trust_warnings_midjourney_dalle_and_clean() {
+        let mj = obj(json!({"Software": "Midjourney v5"}));
+        let w = collect_trust_warnings(&mj, false);
+        assert!(!w.is_empty(), "{w:?}");
+        let clean = obj(json!({"Make": "Canon", "Model": "EOS R5", "Software": "Canon EOS Utility"}));
+        let w = collect_trust_warnings(&clean, false);
+        assert!(!w.iter().any(|x| x.to_ascii_lowercase().contains("synthetic")), "{w:?}");
+        let w = collect_trust_warnings(&clean, true);
+        assert!(w.iter().any(|x| x.to_ascii_lowercase().contains("gps")), "{w:?}");
+    }
 }

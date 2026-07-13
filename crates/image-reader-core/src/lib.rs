@@ -586,5 +586,40 @@ mod tests {
         assert!(!infer_has_alpha(ImageFormat::Tiff, &[]));
     }
 
-}
 
+    #[test]
+    fn bw8_format_label_mime_jpeg_gif_webp_matrix() {
+        assert_eq!(format_label(ImageFormat::Jpeg), "jpeg");
+        assert_eq!(mime_for_format(ImageFormat::Jpeg), "image/jpeg");
+        assert_eq!(color_type_label(ImageFormat::Jpeg), "rgb");
+        assert_eq!(format_label(ImageFormat::Gif), "gif");
+        assert_eq!(mime_for_format(ImageFormat::Gif), "image/gif");
+        assert_eq!(color_type_label(ImageFormat::Gif), "rgba-capable");
+        assert_eq!(format_label(ImageFormat::WebP), "webp");
+        assert_eq!(mime_for_format(ImageFormat::WebP), "image/webp");
+        assert!(infer_has_alpha(ImageFormat::Gif, &[]));
+        assert!(infer_has_alpha(ImageFormat::WebP, &[]));
+        assert!(!infer_has_alpha(ImageFormat::Jpeg, &[]));
+    }
+
+    #[test]
+    fn bw8_base64_empty_single_and_known_vector() {
+        assert_eq!(base64_encode(b""), "");
+        assert_eq!(base64_encode(b"f"), "Zg==");
+        assert_eq!(base64_encode(b"fo"), "Zm8=");
+        assert_eq!(base64_encode(b"foo"), "Zm9v");
+        assert_eq!(base64_encode(b"Man"), "TWFu");
+    }
+
+    #[test]
+    fn bw8_validate_bbox_corner_and_y_saturate() {
+        let corner = RegionBBox { x: 9, y: 9, width: 1, height: 1 };
+        assert!(validate_bbox(&corner, 10, 10).is_ok());
+        let past = RegionBBox { x: 10, y: 0, width: 1, height: 1 };
+        let err = validate_bbox(&past, 10, 10).unwrap_err();
+        assert_eq!(err.code, ProbeErrorCode::InvalidParams);
+        let y_sat = RegionBBox { x: 0, y: u32::MAX - 1, width: 1, height: 5 };
+        let err = validate_bbox(&y_sat, 100, 100).unwrap_err();
+        assert_eq!(err.code, ProbeErrorCode::InvalidParams);
+    }
+}

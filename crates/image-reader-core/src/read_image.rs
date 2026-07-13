@@ -350,4 +350,18 @@ mod tests {
         .expect("read");
         assert!(twin.metadata.is_none());
     }
+
+
+    #[test]
+    fn bw8_parse_region_bbox_missing_and_types() {
+        use serde_json::json;
+        let ok = parse_region_bbox(&json!({"x":1,"y":2,"width":3,"height":4})).unwrap();
+        assert_eq!((ok.x, ok.y, ok.width, ok.height), (1, 2, 3, 4));
+        assert!(parse_region_bbox(&json!({"y":0,"width":1,"height":1})).is_err());
+        assert!(parse_region_bbox(&json!({"x":0,"width":1,"height":1})).is_err());
+        assert!(parse_region_bbox(&json!({"x":0,"y":0,"height":1})).is_err());
+        assert!(parse_region_bbox(&json!({"x":0,"y":0,"width":1})).is_err());
+        assert!(parse_region_bbox(&json!({"x":"1","y":0,"width":1,"height":1})).is_err());
+        assert!(parse_region_bbox(&json!({})).is_err());
+    }
 }

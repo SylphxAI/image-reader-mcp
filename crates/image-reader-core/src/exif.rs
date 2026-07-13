@@ -275,4 +275,44 @@ mod tests {
         );
     }
 
+
+    #[test]
+    fn bw8_float_or_array_and_number_from_f64() {
+        assert_eq!(
+            float_or_array([1.5].into_iter()),
+            Value::Number(Number::from_f64(1.5).unwrap())
+        );
+        let multi = float_or_array([1.0, 2.5].into_iter());
+        assert!(multi.is_array());
+        assert_eq!(multi.as_array().unwrap().len(), 2);
+        let empty = float_or_array(std::iter::empty());
+        assert!(empty.is_array());
+        assert!(empty.as_array().unwrap().is_empty());
+        let empty_u = number_or_array_u32(std::iter::empty());
+        assert!(empty_u.is_array());
+        assert!(empty_u.as_array().unwrap().is_empty());
+        assert_eq!(number_from_f64(f64::NAN), Value::Null);
+        assert_eq!(number_from_f64(f64::INFINITY), Value::Null);
+    }
+
+    #[test]
+    fn bw8_srational_zero_denom_and_long_array() {
+        let z = exif::SRational { num: 1, denom: 0 };
+        assert_eq!(srational_to_json(&z), Value::Null);
+        assert_eq!(
+            exif_value_to_json(&ExifValue::Long(vec![1, 2, 3])),
+            Value::Array(vec![
+                Value::Number(Number::from(1u32)),
+                Value::Number(Number::from(2u32)),
+                Value::Number(Number::from(3u32)),
+            ])
+        );
+        assert_eq!(
+            exif_value_to_json(&ExifValue::Byte(vec![1, 2])),
+            Value::Array(vec![
+                Value::Number(Number::from(1u8)),
+                Value::Number(Number::from(2u8)),
+            ])
+        );
+    }
 }
