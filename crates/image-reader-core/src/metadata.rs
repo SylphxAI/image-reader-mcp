@@ -358,4 +358,44 @@ mod tests {
     }
 
 
+
+    #[test]
+    fn bw7_redact_gps_object_key_and_nested_non_gps() {
+        let meta = obj(json!({
+            "gps": { "lat": 1.0, "lon": 2.0 },
+            "exif": { "ISO": 100, "FNumber": 1.8 }
+        }));
+        let (redacted, had) = redact_gps_fields(&meta);
+        assert!(had);
+        assert_eq!(redacted.get("gps").and_then(Value::as_str), Some("[redacted]"));
+        let exif = redacted.get("exif").and_then(Value::as_object).unwrap();
+        assert_eq!(exif.get("ISO").and_then(Value::as_i64), Some(100));
+    }
+
+    #[test]
+    fn bw7_trust_warnings_gimp_and_synthetic_make_model() {
+        let meta = obj(json!({ "Software": "GIMP 2.10", "Make": "FakeCam", "Model": "X1" }));
+        let warnings = collect_trust_warnings(&meta, false);
+        assert!(warnings.iter().any(|w| w.contains("GIMP") || w.to_ascii_lowercase().contains("synthetic") || w.contains("editing")), "{warnings:?}");
+        assert!(warnings.iter().any(|w| w.contains("inconsistent or synthetic")), "{warnings:?}");
+    }
+
+    #[test]
+    fn bw7_is_gps_key_nested_table_exact_and_non_prefix() {
+        // exact nested-table keys that are not pure prefixes
+        assert!(is_gps_key("GPSDateStamp"));
+        assert!(is_gps_key("GPSHPositioningError"));
+        assert!(is_gps_key("lat")); // nested table exact (case-sensitive branch for nested list)
+        assert!(is_gps_key("lon"));
+        assert!(!is_gps_key("exposure"));
+        assert!(!is_gps_key("ISOSpeedRatings"));
+    }
+
+    #[test]
+    fn bw7_contains_ci_via_software_generative_marker() {
+        let meta = obj(json!({ "software": "Generative Fill Preview" })); // lowercase key path
+        let warnings = collect_trust_warnings(&meta, false);
+        assert!(warnings.iter().any(|w| w.contains("Generative") || w.contains("synthetic") || w.contains("editing")), "{warnings:?}");
+    }
+
 }

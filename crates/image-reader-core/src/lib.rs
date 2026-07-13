@@ -542,5 +542,49 @@ mod tests {
         assert_eq!(err.code, ProbeErrorCode::InvalidParams);
     }
 
+
+    #[test]
+    fn bw7_format_label_mime_bmp_and_base64_longer() {
+        assert_eq!(format_label(ImageFormat::Bmp), "bmp");
+        assert_eq!(mime_for_format(ImageFormat::Bmp), "image/bmp");
+        assert_eq!(color_type_label(ImageFormat::Bmp), "palette-or-rgb");
+        // longer multi-chunk base64 (6 bytes => 8 chars, no pad)
+        assert_eq!(base64_encode(b"foobar"), "Zm9vYmFy");
+        // 4 bytes => pad with =
+        assert_eq!(base64_encode(b"foob"), "Zm9vYg==");
+        // 5 bytes => single =
+        assert_eq!(base64_encode(b"fooba"), "Zm9vYmE=");
+    }
+
+    #[test]
+    fn bw7_validate_bbox_zero_width_and_origin_exact() {
+        let zero_w = RegionBBox { x: 0, y: 0, width: 0, height: 1 };
+        let err = validate_bbox(&zero_w, 10, 10).unwrap_err();
+        assert_eq!(err.code, ProbeErrorCode::InvalidParams);
+        assert!(err.message.contains("positive"));
+        // origin + full size exact fit
+        let full = RegionBBox { x: 0, y: 0, width: 10, height: 10 };
+        assert!(validate_bbox(&full, 10, 10).is_ok());
+        // y overflow via saturating path
+        let y_overflow = RegionBBox { x: 0, y: 9, width: 1, height: 2 };
+        let err = validate_bbox(&y_overflow, 10, 10).unwrap_err();
+        assert!(err.message.contains("exceeds image bounds"));
+    }
+
+    #[test]
+    fn bw7_infer_has_alpha_png_color_type_matrix() {
+        let mut png = vec![0u8; 26];
+        for ct in [0u8, 2, 3] {
+            png[25] = ct;
+            assert!(!infer_has_alpha(ImageFormat::Png, &png), "ct={ct}");
+        }
+        for ct in [4u8, 6] {
+            png[25] = ct;
+            assert!(infer_has_alpha(ImageFormat::Png, &png), "ct={ct}");
+        }
+        assert!(!infer_has_alpha(ImageFormat::Bmp, &[]));
+        assert!(!infer_has_alpha(ImageFormat::Tiff, &[]));
+    }
+
 }
 
