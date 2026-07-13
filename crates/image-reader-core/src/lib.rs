@@ -622,4 +622,51 @@ mod tests {
         let err = validate_bbox(&y_sat, 100, 100).unwrap_err();
         assert_eq!(err.code, ProbeErrorCode::InvalidParams);
     }
+
+
+    #[test]
+    fn bulk_format_label_mime_bmp_tiff_and_png() {
+        assert_eq!(format_label(ImageFormat::Bmp), "bmp");
+        assert_eq!(format_label(ImageFormat::Tiff), "tiff");
+        assert_eq!(mime_for_format(ImageFormat::Bmp), "image/bmp");
+        assert_eq!(mime_for_format(ImageFormat::Tiff), "image/tiff");
+        assert_eq!(mime_for_format(ImageFormat::Png), "image/png");
+        assert!(!color_type_label(ImageFormat::Jpeg).is_empty());
+        assert!(!color_type_label(ImageFormat::Png).is_empty());
+    }
+
+    #[test]
+    fn bulk_validate_bbox_zero_size_and_overflow() {
+        assert!(validate_bbox(
+            &RegionBBox { x: 0, y: 0, width: 0, height: 1 },
+            10,
+            10
+        )
+        .is_err());
+        assert!(validate_bbox(
+            &RegionBBox { x: 0, y: 0, width: 1, height: 0 },
+            10,
+            10
+        )
+        .is_err());
+        assert!(validate_bbox(
+            &RegionBBox { x: 9, y: 9, width: 2, height: 2 },
+            10,
+            10
+        )
+        .is_err());
+        assert!(validate_bbox(
+            &RegionBBox { x: 0, y: 0, width: 10, height: 10 },
+            10,
+            10
+        )
+        .is_ok());
+    }
+
+    #[test]
+    fn bulk_base64_two_byte_remainder_padding() {
+        assert_eq!(base64_encode(b"f"), "Zg==");
+        assert_eq!(base64_encode(b"fo"), "Zm8=");
+        assert_eq!(base64_encode(b"foo"), "Zm9v");
+    }
 }

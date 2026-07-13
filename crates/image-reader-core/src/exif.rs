@@ -315,4 +315,33 @@ mod tests {
             ])
         );
     }
+
+
+    #[test]
+    fn bulk_number_or_array_u32_single_and_multi() {
+        assert_eq!(
+            number_or_array_u32(std::iter::once(7u32)),
+            Value::Number(Number::from(7u32))
+        );
+        assert_eq!(
+            number_or_array_u32([1u32, 2, 3].into_iter()),
+            Value::Array(vec![
+                Value::Number(Number::from(1u32)),
+                Value::Number(Number::from(2u32)),
+                Value::Number(Number::from(3u32)),
+            ])
+        );
+        assert_eq!(
+            float_or_array(std::iter::once(1.5)),
+            number_from_f64(1.5)
+        );
+    }
+
+    #[test]
+    fn bulk_number_from_f64_neg_and_zero() {
+        assert_eq!(number_from_f64(-3.0), Value::Number(Number::from_f64(-3.0).unwrap()));
+        assert_eq!(number_from_f64(0.0), Value::Number(Number::from_f64(0.0).unwrap()));
+        let inf = number_from_f64(f64::INFINITY);
+        assert!(inf.is_null() || inf.is_number() || inf.is_string());
+    }
 }

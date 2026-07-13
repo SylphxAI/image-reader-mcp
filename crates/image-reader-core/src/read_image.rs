@@ -364,4 +364,13 @@ mod tests {
         assert!(parse_region_bbox(&json!({"x":"1","y":0,"width":1,"height":1})).is_err());
         assert!(parse_region_bbox(&json!({})).is_err());
     }
+
+
+    #[test]
+    fn bulk_parse_region_bbox_negative_rejected_and_full_ok() {
+        use serde_json::json;
+        assert!(parse_region_bbox(&json!({"x":-1,"y":0,"width":1,"height":1})).is_err());
+        assert!(parse_region_bbox(&json!({"x":0,"y":0,"width":1,"height":1})).is_ok());
+        assert!(parse_region_bbox(&json!({"x":0,"y":0,"width":"1","height":1})).is_err());
+    }
 }

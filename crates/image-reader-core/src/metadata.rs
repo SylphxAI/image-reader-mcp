@@ -440,4 +440,24 @@ mod tests {
         let w = collect_trust_warnings(&clean, true);
         assert!(w.iter().any(|x| x.to_ascii_lowercase().contains("gps")), "{w:?}");
     }
+
+
+    #[test]
+    fn bulk_redact_gps_fields_top_level_key() {
+        let mut m = Map::new();
+        m.insert("title".into(), Value::String("ok".into()));
+        m.insert("GPSLatitude".into(), Value::String("1".into()));
+        let (out, had) = redact_gps_fields(&m);
+        assert!(had);
+        assert_eq!(out.get("title").and_then(|v| v.as_str()), Some("ok"));
+    }
+
+    #[test]
+    fn bulk_contains_ci_and_is_gps_key_underscore_form() {
+        assert!(contains_ci("HelloGPSWorld", "gps"));
+        assert!(!contains_ci("hello", "gps"));
+        assert!(is_gps_key("geo_point"));
+        assert!(is_gps_key("Altitude"));
+        assert!(!is_gps_key("author"));
+    }
 }
