@@ -226,4 +226,61 @@ mod tests {
         assert_eq!(redacted.get("Make").and_then(Value::as_str), Some("Nikon"));
         assert!(warnings.iter().any(|w| w.contains("GPS coordinates")));
     }
+
+    #[test]
+    fn midjourney_and_stable_diffusion_software_markers() {
+        for software in ["Midjourney v6", "stable diffusion webui", "OpenAI generator"] {
+            let meta = obj(json!({ "Software": software }));
+            let warnings = collect_trust_warnings(&meta, false);
+            assert!(
+                warnings.iter().any(|w| w.contains("synthetic origin")),
+                "software={software} warnings={warnings:?}"
+            );
+        }
+    }
+
+    #[test]
+    fn bare_ai_substring_in_software_matches_ts_oracle() {
+        // TS uses /...|ai|.../i — intentional bare-substring parity (e.g. "GIMP AI plugin").
+        // Avoid any substring of markers (note: "Paint" contains bare "ai").
+        let meta = obj(json!({ "Software": "Darktable" }));
+        assert!(collect_trust_warnings(&meta, false).is_empty());
+        let meta = obj(json!({ "Software": "MyAI Tool" }));
+        let warnings = collect_trust_warnings(&meta, false);
+        assert!(warnings.iter().any(|w| w.contains("MyAI Tool")), "{warnings:?}");
+    }
+
+    #[test]
+    fn redacts_array_gps_values_and_coordinates_prefix() {
+        let meta = obj(json!({
+            "coordinates": [1.0, 2.0],
+            "geoTag": "somewhere",
+            "ISO": 200
+        }));
+        let (redacted, had) = redact_gps_fields(&meta);
+        assert!(had);
+        assert_eq!(
+            redacted.get("coordinates"),
+            Some(&json!(["[redacted]", "[redacted]"]))
+        );
+        assert_eq!(
+            redacted.get("geoTag").and_then(Value::as_str),
+            Some("[redacted]")
+        );
+        assert_eq!(redacted.get("ISO").and_then(Value::as_i64), Some(200));
+    }
+
+    #[test]
+    fn sanitize_preserves_non_gps_nested_objects() {
+        let meta = obj(json!({
+            "exif": { "ISO": 400, "FNumber": 2.8 },
+            "MakerNote": "ok"
+        }));
+        let (redacted, warnings) = sanitize_metadata(&meta);
+        assert!(warnings.is_empty());
+        let exif = redacted.get("exif").and_then(Value::as_object).unwrap();
+        assert_eq!(exif.get("ISO").and_then(Value::as_i64), Some(400));
+        assert_eq!(redacted.get("MakerNote").and_then(Value::as_str), Some("ok"));
+    }
+
 }

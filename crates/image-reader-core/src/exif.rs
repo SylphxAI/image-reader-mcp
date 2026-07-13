@@ -201,4 +201,38 @@ mod tests {
             extracted.fields.keys().collect::<Vec<_>>()
         );
     }
+
+    #[test]
+    fn rational_to_json_divides_and_nulls_zero_denom() {
+        let r = exif::Rational { num: 1, denom: 2 };
+        assert_eq!(rational_to_json(&r), Value::Number(Number::from_f64(0.5).unwrap()));
+        let z = exif::Rational { num: 1, denom: 0 };
+        assert_eq!(rational_to_json(&z), Value::Null);
+        let s = exif::SRational { num: -3, denom: 2 };
+        assert_eq!(srational_to_json(&s), Value::Number(Number::from_f64(-1.5).unwrap()));
+    }
+
+    #[test]
+    fn exif_value_to_json_ascii_byte_short_undefined() {
+        assert_eq!(
+            exif_value_to_json(&ExifValue::Ascii(vec![b"Canon\0".to_vec()])),
+            Value::String("Canon".into())
+        );
+        assert_eq!(
+            exif_value_to_json(&ExifValue::Byte(vec![7])),
+            Value::Number(Number::from(7u8))
+        );
+        assert_eq!(
+            exif_value_to_json(&ExifValue::Short(vec![1, 2])),
+            Value::Array(vec![
+                Value::Number(Number::from(1u32)),
+                Value::Number(Number::from(2u32))
+            ])
+        );
+        assert_eq!(
+            exif_value_to_json(&ExifValue::Undefined(vec![0, 1, 2], 0)),
+            Value::String("undefined:3B".into())
+        );
+    }
+
 }
