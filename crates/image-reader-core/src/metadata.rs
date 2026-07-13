@@ -283,4 +283,44 @@ mod tests {
         assert_eq!(redacted.get("MakerNote").and_then(Value::as_str), Some("ok"));
     }
 
+
+
+    #[test]
+    fn redacts_nested_object_latitude_and_gps_keyed_array() {
+        // Nested object keys are walked; arrays only redact when the parent key is GPS-tagged.
+        let meta = obj(json!({
+            "camera": {
+                "latitude": 1.0,
+                "name": "a"
+            },
+            "ISO": 100
+        }));
+        let (redacted, had) = redact_gps_fields(&meta);
+        assert!(had);
+        let camera = redacted.get("camera").and_then(Value::as_object).unwrap();
+        assert_eq!(camera.get("latitude").and_then(Value::as_str), Some("[redacted]"));
+        assert_eq!(camera.get("name").and_then(Value::as_str), Some("a"));
+        assert_eq!(redacted.get("ISO").and_then(Value::as_i64), Some(100));
+
+        let meta = obj(json!({
+            "coordinates": [
+                {"name": "pt", "note": "x"},
+                9
+            ]
+        }));
+        let (redacted, had) = redact_gps_fields(&meta);
+        assert!(had);
+        let coords = redacted.get("coordinates").and_then(Value::as_array).unwrap();
+        // array under GPS-prefix key: objects recurse, scalars become [redacted]
+        assert_eq!(coords[0].get("name").and_then(Value::as_str), Some("pt"));
+        assert_eq!(coords[1].as_str(), Some("[redacted]"));
+    }
+
+    #[test]
+    fn trust_warnings_case_insensitive_photoshop_marker() {
+        let meta = obj(json!({ "Software": "ADOBE PHOTOSHOP Express" }));
+        let warnings = collect_trust_warnings(&meta, false);
+        assert!(warnings.iter().any(|w| w.to_lowercase().contains("photoshop") || w.contains("synthetic") || w.contains("Software")), "{warnings:?}");
+    }
+
 }

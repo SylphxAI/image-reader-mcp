@@ -440,4 +440,55 @@ mod tests {
         assert_eq!(evidence.height, 5);
         assert!(evidence.image_base64.as_ref().is_some_and(|value| !value.is_empty()));
     }
+
+
+    #[test]
+    fn validate_bbox_rejects_zero_and_overflow() {
+        let ok = RegionBBox {
+            x: 0,
+            y: 0,
+            width: 10,
+            height: 5,
+        };
+        assert!(validate_bbox(&ok, 10, 5).is_ok());
+        let zero = RegionBBox {
+            x: 0,
+            y: 0,
+            width: 0,
+            height: 5,
+        };
+        let err = validate_bbox(&zero, 10, 5).unwrap_err();
+        assert_eq!(err.code, ProbeErrorCode::InvalidParams);
+        let overflow = RegionBBox {
+            x: 8,
+            y: 0,
+            width: 4,
+            height: 5,
+        };
+        let err = validate_bbox(&overflow, 10, 5).unwrap_err();
+        assert_eq!(err.code, ProbeErrorCode::InvalidParams);
+        assert!(err.message.contains("exceeds image bounds"));
+    }
+
+    #[test]
+    fn format_label_mime_and_color_type_pure_map() {
+        assert_eq!(format_label(ImageFormat::Png), "png");
+        assert_eq!(format_label(ImageFormat::Jpeg), "jpeg");
+        assert_eq!(format_label(ImageFormat::WebP), "webp");
+        assert_eq!(mime_for_format(ImageFormat::Png), "image/png");
+        assert_eq!(mime_for_format(ImageFormat::Jpeg), "image/jpeg");
+        assert_eq!(mime_for_format(ImageFormat::Bmp), "image/bmp");
+        assert_eq!(color_type_label(ImageFormat::Png), "rgba-capable");
+        assert_eq!(color_type_label(ImageFormat::Jpeg), "rgb");
+        assert_eq!(color_type_label(ImageFormat::Tiff), "palette-or-rgb");
+        // PNG IHDR color type byte at offset 25: 6 => rgba alpha
+        let mut png = vec![0u8; 26];
+        png[25] = 6;
+        assert!(infer_has_alpha(ImageFormat::Png, &png));
+        png[25] = 2;
+        assert!(!infer_has_alpha(ImageFormat::Png, &png));
+        assert!(infer_has_alpha(ImageFormat::Gif, &[]));
+        assert!(!infer_has_alpha(ImageFormat::Jpeg, &[]));
+    }
+
 }

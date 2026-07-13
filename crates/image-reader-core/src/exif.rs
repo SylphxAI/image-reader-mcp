@@ -235,4 +235,44 @@ mod tests {
         );
     }
 
+
+
+    #[test]
+    fn exif_value_to_json_long_sbyte_float_unknown() {
+        assert_eq!(
+            exif_value_to_json(&ExifValue::Long(vec![42])),
+            Value::Number(Number::from(42u32))
+        );
+        assert_eq!(
+            exif_value_to_json(&ExifValue::SByte(vec![-2, 3])),
+            Value::Array(vec![
+                Value::Number(Number::from(-2i8)),
+                Value::Number(Number::from(3i8))
+            ])
+        );
+        assert_eq!(
+            exif_value_to_json(&ExifValue::Float(vec![1.5])),
+            Value::Number(Number::from_f64(1.5).unwrap())
+        );
+        assert_eq!(
+            exif_value_to_json(&ExifValue::Unknown(9, 1, 2)),
+            Value::String("unknown:tag=9:type=1:count=2".into())
+        );
+        assert_eq!(
+            exif_value_to_json(&ExifValue::Undefined(vec![1, 2, 3], 0)),
+            Value::String("undefined:3B".into())
+        );
+        assert_eq!(
+            number_or_array_u32([7u32].into_iter()),
+            Value::Number(Number::from(7u32))
+        );
+        assert_eq!(
+            number_or_array_u32([1u32, 2u32].into_iter()),
+            Value::Array(vec![
+                Value::Number(Number::from(1u32)),
+                Value::Number(Number::from(2u32))
+            ])
+        );
+    }
+
 }
