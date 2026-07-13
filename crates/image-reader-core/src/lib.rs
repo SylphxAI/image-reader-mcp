@@ -1,9 +1,13 @@
 //! Rust image probe and hash engine for image-reader-mcp.
 
 pub mod envelope;
+pub mod exif;
+pub mod metadata;
 pub mod read_image;
 
 pub use envelope::{build_read_image_envelope, AgentEvidenceEnvelope, EnvelopeInput};
+pub use exif::{extract_exif_from_bytes, extract_exif_from_path, ExifExtract};
+pub use metadata::{collect_trust_warnings, redact_gps_fields, sanitize_metadata};
 pub use read_image::{
     read_image, read_image_from_value, read_image_with_envelope, AgentMediaTwin, ReadImageOptions,
     ReadImageSuccess, READ_IMAGE_ROUTE,
@@ -435,5 +439,234 @@ mod tests {
         assert_eq!(evidence.width, 10);
         assert_eq!(evidence.height, 5);
         assert!(evidence.image_base64.as_ref().is_some_and(|value| !value.is_empty()));
+    }
+
+
+    #[test]
+    fn validate_bbox_rejects_zero_and_overflow() {
+        let ok = RegionBBox {
+            x: 0,
+            y: 0,
+            width: 10,
+            height: 5,
+        };
+        assert!(validate_bbox(&ok, 10, 5).is_ok());
+        let zero = RegionBBox {
+            x: 0,
+            y: 0,
+            width: 0,
+            height: 5,
+        };
+        let err = validate_bbox(&zero, 10, 5).unwrap_err();
+        assert_eq!(err.code, ProbeErrorCode::InvalidParams);
+        let overflow = RegionBBox {
+            x: 8,
+            y: 0,
+            width: 4,
+            height: 5,
+        };
+        let err = validate_bbox(&overflow, 10, 5).unwrap_err();
+        assert_eq!(err.code, ProbeErrorCode::InvalidParams);
+        assert!(err.message.contains("exceeds image bounds"));
+    }
+
+    #[test]
+    fn format_label_mime_and_color_type_pure_map() {
+        assert_eq!(format_label(ImageFormat::Png), "png");
+        assert_eq!(format_label(ImageFormat::Jpeg), "jpeg");
+        assert_eq!(format_label(ImageFormat::WebP), "webp");
+        assert_eq!(mime_for_format(ImageFormat::Png), "image/png");
+        assert_eq!(mime_for_format(ImageFormat::Jpeg), "image/jpeg");
+        assert_eq!(mime_for_format(ImageFormat::Bmp), "image/bmp");
+        assert_eq!(color_type_label(ImageFormat::Png), "rgba-capable");
+        assert_eq!(color_type_label(ImageFormat::Jpeg), "rgb");
+        assert_eq!(color_type_label(ImageFormat::Tiff), "palette-or-rgb");
+        // PNG IHDR color type byte at offset 25: 6 => rgba alpha
+        let mut png = vec![0u8; 26];
+        png[25] = 6;
+        assert!(infer_has_alpha(ImageFormat::Png, &png));
+        png[25] = 2;
+        assert!(!infer_has_alpha(ImageFormat::Png, &png));
+        assert!(infer_has_alpha(ImageFormat::Gif, &[]));
+        assert!(!infer_has_alpha(ImageFormat::Jpeg, &[]));
+    }
+
+    #[test]
+    fn base64_encode_padding_and_format_gif_tiff() {
+        assert_eq!(base64_encode(b""), "");
+        assert_eq!(base64_encode(b"f"), "Zg==");
+        assert_eq!(base64_encode(b"fo"), "Zm8=");
+        assert_eq!(base64_encode(b"foo"), "Zm9v");
+        assert_eq!(format_label(ImageFormat::Gif), "gif");
+        assert_eq!(format_label(ImageFormat::Tiff), "tiff");
+        assert_eq!(mime_for_format(ImageFormat::Gif), "image/gif");
+        assert_eq!(mime_for_format(ImageFormat::Tiff), "image/tiff");
+        assert_eq!(mime_for_format(ImageFormat::WebP), "image/webp");
+        assert_eq!(color_type_label(ImageFormat::Gif), "rgba-capable");
+        assert_eq!(color_type_label(ImageFormat::Bmp), "palette-or-rgb");
+        assert_eq!(color_type_label(ImageFormat::WebP), "rgba-capable");
+        // PNG grayscale+alpha color type 4
+        let mut png = vec![0u8; 26];
+        png[25] = 4;
+        assert!(infer_has_alpha(ImageFormat::Png, &png));
+        assert!(infer_has_alpha(ImageFormat::WebP, &[]));
+        assert!(!infer_has_alpha(ImageFormat::Png, &[])); // short buffer
+    }
+
+    #[test]
+    fn validate_bbox_rejects_zero_height_and_exact_fit_ok() {
+        let exact = RegionBBox {
+            x: 0,
+            y: 0,
+            width: 10,
+            height: 5,
+        };
+        assert!(validate_bbox(&exact, 10, 5).is_ok());
+        let zero_h = RegionBBox {
+            x: 1,
+            y: 1,
+            width: 2,
+            height: 0,
+        };
+        let err = validate_bbox(&zero_h, 10, 5).unwrap_err();
+        assert_eq!(err.code, ProbeErrorCode::InvalidParams);
+        assert!(err.message.contains("positive"));
+        // saturating add overflow style: large x+width
+        let big = RegionBBox {
+            x: u32::MAX - 1,
+            y: 0,
+            width: 5,
+            height: 1,
+        };
+        let err = validate_bbox(&big, 100, 100).unwrap_err();
+        assert_eq!(err.code, ProbeErrorCode::InvalidParams);
+    }
+
+
+    #[test]
+    fn bw7_format_label_mime_bmp_and_base64_longer() {
+        assert_eq!(format_label(ImageFormat::Bmp), "bmp");
+        assert_eq!(mime_for_format(ImageFormat::Bmp), "image/bmp");
+        assert_eq!(color_type_label(ImageFormat::Bmp), "palette-or-rgb");
+        // longer multi-chunk base64 (6 bytes => 8 chars, no pad)
+        assert_eq!(base64_encode(b"foobar"), "Zm9vYmFy");
+        // 4 bytes => pad with =
+        assert_eq!(base64_encode(b"foob"), "Zm9vYg==");
+        // 5 bytes => single =
+        assert_eq!(base64_encode(b"fooba"), "Zm9vYmE=");
+    }
+
+    #[test]
+    fn bw7_validate_bbox_zero_width_and_origin_exact() {
+        let zero_w = RegionBBox { x: 0, y: 0, width: 0, height: 1 };
+        let err = validate_bbox(&zero_w, 10, 10).unwrap_err();
+        assert_eq!(err.code, ProbeErrorCode::InvalidParams);
+        assert!(err.message.contains("positive"));
+        // origin + full size exact fit
+        let full = RegionBBox { x: 0, y: 0, width: 10, height: 10 };
+        assert!(validate_bbox(&full, 10, 10).is_ok());
+        // y overflow via saturating path
+        let y_overflow = RegionBBox { x: 0, y: 9, width: 1, height: 2 };
+        let err = validate_bbox(&y_overflow, 10, 10).unwrap_err();
+        assert!(err.message.contains("exceeds image bounds"));
+    }
+
+    #[test]
+    fn bw7_infer_has_alpha_png_color_type_matrix() {
+        let mut png = vec![0u8; 26];
+        for ct in [0u8, 2, 3] {
+            png[25] = ct;
+            assert!(!infer_has_alpha(ImageFormat::Png, &png), "ct={ct}");
+        }
+        for ct in [4u8, 6] {
+            png[25] = ct;
+            assert!(infer_has_alpha(ImageFormat::Png, &png), "ct={ct}");
+        }
+        assert!(!infer_has_alpha(ImageFormat::Bmp, &[]));
+        assert!(!infer_has_alpha(ImageFormat::Tiff, &[]));
+    }
+
+
+    #[test]
+    fn bw8_format_label_mime_jpeg_gif_webp_matrix() {
+        assert_eq!(format_label(ImageFormat::Jpeg), "jpeg");
+        assert_eq!(mime_for_format(ImageFormat::Jpeg), "image/jpeg");
+        assert_eq!(color_type_label(ImageFormat::Jpeg), "rgb");
+        assert_eq!(format_label(ImageFormat::Gif), "gif");
+        assert_eq!(mime_for_format(ImageFormat::Gif), "image/gif");
+        assert_eq!(color_type_label(ImageFormat::Gif), "rgba-capable");
+        assert_eq!(format_label(ImageFormat::WebP), "webp");
+        assert_eq!(mime_for_format(ImageFormat::WebP), "image/webp");
+        assert!(infer_has_alpha(ImageFormat::Gif, &[]));
+        assert!(infer_has_alpha(ImageFormat::WebP, &[]));
+        assert!(!infer_has_alpha(ImageFormat::Jpeg, &[]));
+    }
+
+    #[test]
+    fn bw8_base64_empty_single_and_known_vector() {
+        assert_eq!(base64_encode(b""), "");
+        assert_eq!(base64_encode(b"f"), "Zg==");
+        assert_eq!(base64_encode(b"fo"), "Zm8=");
+        assert_eq!(base64_encode(b"foo"), "Zm9v");
+        assert_eq!(base64_encode(b"Man"), "TWFu");
+    }
+
+    #[test]
+    fn bw8_validate_bbox_corner_and_y_saturate() {
+        let corner = RegionBBox { x: 9, y: 9, width: 1, height: 1 };
+        assert!(validate_bbox(&corner, 10, 10).is_ok());
+        let past = RegionBBox { x: 10, y: 0, width: 1, height: 1 };
+        let err = validate_bbox(&past, 10, 10).unwrap_err();
+        assert_eq!(err.code, ProbeErrorCode::InvalidParams);
+        let y_sat = RegionBBox { x: 0, y: u32::MAX - 1, width: 1, height: 5 };
+        let err = validate_bbox(&y_sat, 100, 100).unwrap_err();
+        assert_eq!(err.code, ProbeErrorCode::InvalidParams);
+    }
+
+
+    #[test]
+    fn bulk_format_label_mime_bmp_tiff_and_png() {
+        assert_eq!(format_label(ImageFormat::Bmp), "bmp");
+        assert_eq!(format_label(ImageFormat::Tiff), "tiff");
+        assert_eq!(mime_for_format(ImageFormat::Bmp), "image/bmp");
+        assert_eq!(mime_for_format(ImageFormat::Tiff), "image/tiff");
+        assert_eq!(mime_for_format(ImageFormat::Png), "image/png");
+        assert!(!color_type_label(ImageFormat::Jpeg).is_empty());
+        assert!(!color_type_label(ImageFormat::Png).is_empty());
+    }
+
+    #[test]
+    fn bulk_validate_bbox_zero_size_and_overflow() {
+        assert!(validate_bbox(
+            &RegionBBox { x: 0, y: 0, width: 0, height: 1 },
+            10,
+            10
+        )
+        .is_err());
+        assert!(validate_bbox(
+            &RegionBBox { x: 0, y: 0, width: 1, height: 0 },
+            10,
+            10
+        )
+        .is_err());
+        assert!(validate_bbox(
+            &RegionBBox { x: 9, y: 9, width: 2, height: 2 },
+            10,
+            10
+        )
+        .is_err());
+        assert!(validate_bbox(
+            &RegionBBox { x: 0, y: 0, width: 10, height: 10 },
+            10,
+            10
+        )
+        .is_ok());
+    }
+
+    #[test]
+    fn bulk_base64_two_byte_remainder_padding() {
+        assert_eq!(base64_encode(b"f"), "Zg==");
+        assert_eq!(base64_encode(b"fo"), "Zm8=");
+        assert_eq!(base64_encode(b"foo"), "Zm9v");
     }
 }
