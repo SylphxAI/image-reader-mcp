@@ -323,4 +323,39 @@ mod tests {
         assert!(warnings.iter().any(|w| w.to_lowercase().contains("photoshop") || w.contains("synthetic") || w.contains("Software")), "{warnings:?}");
     }
 
+
+
+    #[test]
+    fn is_gps_key_prefix_and_nested_table() {
+        assert!(is_gps_key("GPSLatitude"));
+        assert!(is_gps_key("gpsAltitude"));
+        assert!(is_gps_key("geoPoint"));
+        assert!(is_gps_key("locationName"));
+        assert!(is_gps_key("latitude"));
+        assert!(is_gps_key("coordinates"));
+        assert!(!is_gps_key("artist"));
+        assert!(!is_gps_key("Make"));
+        assert!(is_gps_key("GPSDestBearing"));
+        // lowercase still matches via gps* prefix path
+        assert!(is_gps_key("gpsdestbearing"));
+    }
+
+    #[test]
+    fn redact_value_scalars_become_redacted_string() {
+        use serde_json::json;
+        assert_eq!(redact_value(&Value::Null), json!("[redacted]"));
+        assert_eq!(redact_value(&json!(42)), json!("[redacted]"));
+        assert_eq!(redact_value(&json!("secret")), json!("[redacted]"));
+        // arrays recurse; non-object elements become redacted strings
+        assert_eq!(redact_value(&json!([1, "x"])), json!(["[redacted]", "[redacted]"]));
+    }
+
+    #[test]
+    fn sanitize_metadata_empty_map() {
+        let (map, warnings) = sanitize_metadata(&Map::new());
+        assert!(map.is_empty());
+        assert!(!warnings.iter().any(|w| w.to_ascii_lowercase().contains("gps")));
+    }
+
+
 }

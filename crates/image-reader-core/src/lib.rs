@@ -491,4 +491,56 @@ mod tests {
         assert!(!infer_has_alpha(ImageFormat::Jpeg, &[]));
     }
 
+    #[test]
+    fn base64_encode_padding_and_format_gif_tiff() {
+        assert_eq!(base64_encode(b""), "");
+        assert_eq!(base64_encode(b"f"), "Zg==");
+        assert_eq!(base64_encode(b"fo"), "Zm8=");
+        assert_eq!(base64_encode(b"foo"), "Zm9v");
+        assert_eq!(format_label(ImageFormat::Gif), "gif");
+        assert_eq!(format_label(ImageFormat::Tiff), "tiff");
+        assert_eq!(mime_for_format(ImageFormat::Gif), "image/gif");
+        assert_eq!(mime_for_format(ImageFormat::Tiff), "image/tiff");
+        assert_eq!(mime_for_format(ImageFormat::WebP), "image/webp");
+        assert_eq!(color_type_label(ImageFormat::Gif), "rgba-capable");
+        assert_eq!(color_type_label(ImageFormat::Bmp), "palette-or-rgb");
+        assert_eq!(color_type_label(ImageFormat::WebP), "rgba-capable");
+        // PNG grayscale+alpha color type 4
+        let mut png = vec![0u8; 26];
+        png[25] = 4;
+        assert!(infer_has_alpha(ImageFormat::Png, &png));
+        assert!(infer_has_alpha(ImageFormat::WebP, &[]));
+        assert!(!infer_has_alpha(ImageFormat::Png, &[])); // short buffer
+    }
+
+    #[test]
+    fn validate_bbox_rejects_zero_height_and_exact_fit_ok() {
+        let exact = RegionBBox {
+            x: 0,
+            y: 0,
+            width: 10,
+            height: 5,
+        };
+        assert!(validate_bbox(&exact, 10, 5).is_ok());
+        let zero_h = RegionBBox {
+            x: 1,
+            y: 1,
+            width: 2,
+            height: 0,
+        };
+        let err = validate_bbox(&zero_h, 10, 5).unwrap_err();
+        assert_eq!(err.code, ProbeErrorCode::InvalidParams);
+        assert!(err.message.contains("positive"));
+        // saturating add overflow style: large x+width
+        let big = RegionBBox {
+            x: u32::MAX - 1,
+            y: 0,
+            width: 5,
+            height: 1,
+        };
+        let err = validate_bbox(&big, 100, 100).unwrap_err();
+        assert_eq!(err.code, ProbeErrorCode::InvalidParams);
+    }
+
 }
+
