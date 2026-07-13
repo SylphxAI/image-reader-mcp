@@ -2,9 +2,12 @@ use std::path::{Path, PathBuf};
 
 use serde::Serialize;
 
+use serde_json::{Map, Value};
+
+use crate::metadata::sanitize_metadata;
 use crate::{
-    build_read_image_envelope, crop_region, probe_image, AgentEvidenceEnvelope, EnvelopeInput,
-    ProbeError, RegionBBox, RegionEvidence,
+    build_read_image_envelope, crop_region, extract_exif_from_path, probe_image,
+    AgentEvidenceEnvelope, EnvelopeInput, ProbeError, RegionBBox, RegionEvidence,
 };
 
 pub const READ_IMAGE_ROUTE: &str = "rust-read-image-v1";
@@ -63,6 +66,8 @@ pub struct AgentMediaTwin {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub color_space: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    pub metadata: Option<Map<String, Value>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub region_evidence: Option<RegionEvidenceTwin>,
     pub trust_warnings: Vec<String>,
 }
@@ -111,10 +116,18 @@ fn read_image_from_probe(
         &probe.source_hash[..12.min(probe.source_hash.len())]
     )];
 
+    let mut metadata_out: Option<Map<String, Value>> = None;
     if options.include_metadata {
-        trust_warnings.push(
-            "EXIF/XMP/IPTC metadata extraction is not available on the default Rust read_image route; use IMAGE_READER_MCP_TRANSPORT=ts for full metadata.".into(),
-        );
+        let extracted = extract_exif_from_path(path);
+        if extracted.present {
+            let (redacted, meta_warnings) = sanitize_metadata(&extracted.fields);
+            trust_warnings.extend(meta_warnings);
+            metadata_out = Some(redacted);
+        } else {
+            trust_warnings.push(
+                "No EXIF metadata was found in this image (XMP/IPTC not yet on Rust route).".into(),
+            );
+        }
     }
 
     let mut region_evidence = None;
@@ -144,6 +157,7 @@ fn read_image_from_probe(
         },
         has_alpha: Some(probe.has_alpha),
         color_space: Some(probe.color_type.clone()),
+        metadata: metadata_out,
         region_evidence,
         trust_warnings,
     })
@@ -292,5 +306,48 @@ mod tests {
         assert_eq!(evidence.route, crate::CROP_ROUTE);
         assert_eq!(evidence.dimensions.width, 10);
         assert_eq!(evidence.dimensions.height, 6);
+    }
+
+    #[test]
+    fn read_image_attaches_exif_metadata_when_present() {
+        let fixture = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("fixtures/exif-sample.jpg");
+        let twin = read_image(
+            &fixture,
+            ReadImageOptions {
+                include_metadata: true,
+                ..ReadImageOptions::default()
+            },
+        )
+        .expect("read exif fixture");
+
+        let meta = twin.metadata.expect("metadata present");
+        assert!(
+            meta.contains_key("Orientation")
+                || meta.contains_key("Make")
+                || meta.contains_key("DateTime"),
+            "unexpected keys: {:?}",
+            meta.keys().collect::<Vec<_>>()
+        );
+        assert!(
+            !twin
+                .trust_warnings
+                .iter()
+                .any(|w| w.contains("not available on the default Rust")),
+            "stale unavailable warning still present"
+        );
+    }
+
+    #[test]
+    fn read_image_metadata_off_skips_exif() {
+        let fixture = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("fixtures/exif-sample.jpg");
+        let twin = read_image(
+            &fixture,
+            ReadImageOptions {
+                include_metadata: false,
+                ..ReadImageOptions::default()
+            },
+        )
+        .expect("read");
+        assert!(twin.metadata.is_none());
     }
 }

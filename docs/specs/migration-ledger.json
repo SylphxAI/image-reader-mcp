@@ -178,6 +178,23 @@
       "slice": "transport.stdio-rust-rmcp",
       "verificationRef": "verification/image-reader-cycle64-stdio-transport-rust-impl.json",
       "notes": "rej-010 rust_impl ONLY \u2014 cycle64 harness metadata: transport.stdio-rust-rmcp bounded differential re-verify (4 cases)"
+    },
+    "bw2_readers_tick": {
+      "exif_pure_deepen": {
+        "at": "2026-07-13T00:50:00Z",
+        "branch": "offline/mega-bulk-bw2-image-reader",
+        "module": "crates/image-reader-core/src/exif.rs",
+        "dep": "kamadak-exif 0.6",
+        "wired": "read_image include_metadata path + AgentMediaTwin.metadata",
+        "tests": 15,
+        "explicitNonClaims": [
+          "XMP/IPTC parity with exifr",
+          "parity_proven",
+          "authority_rust",
+          "ts_deleted"
+        ],
+        "authority_rust": false
+      }
     }
   },
   "postMergeGate": {
