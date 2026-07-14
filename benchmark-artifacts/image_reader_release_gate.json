@@ -1,11 +1,11 @@
 {
   "profile": "image_reader_release_gate",
-  "generated_at": "2026-07-09T15:41:26.912Z",
+  "generated_at": "2026-07-09T21:39:30.326Z",
   "artifact_dir": "/home/codex/src/github.com/SylphxAI/image-reader-mcp/benchmark-artifacts",
   "status": "passed",
   "summary": {
-    "total": 16,
-    "passed": 16,
+    "total": 17,
+    "passed": 17,
     "failed": 0
   },
   "checks": [
@@ -79,6 +79,11 @@
       "message": "Default npm bin launches the Rust rmcp MCP server; TypeScript adapter is opt-in only"
     },
     {
+      "id": "mcp:rust_web_http_transport",
+      "status": "passed",
+      "message": "Rust rmcp streamable HTTP Web MCP transport is wired; npm bin routes MCP_TRANSPORT=http to Rust"
+    },
+    {
       "id": "boundary:rust_cli_engine",
       "status": "passed",
       "message": "Shipped-path matrix test proves primary tools route through Rust core without legacy runtime",
@@ -109,7 +114,7 @@
       "status": "passed",
       "message": "image-reader depends on @sylphx/reader-evidence shared schema package",
       "evidence": {
-        "dependency": "file:../reader-evidence"
+        "dependency": "github:SylphxAI/reader-evidence"
       }
     }
   ]

@@ -1,3 +1,4 @@
+pub mod http_transport;
 pub mod read_image;
 pub mod tool_routes;
 
