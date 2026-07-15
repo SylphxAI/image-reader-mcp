@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
+# Image Reader MCP launcher — Rust rmcp only (fail-closed, no TS stdio fallback).
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-TS_ENTRY="$ROOT/dist/index.js"
 
 resolve_rust_bin() {
 	if [[ -n "${IMAGE_READER_MCP_RUST_BIN:-}" && -x "${IMAGE_READER_MCP_RUST_BIN}" ]]; then
@@ -23,10 +23,6 @@ resolve_rust_bin() {
 	return 1
 }
 
-use_ts_transport() {
-	[[ "${IMAGE_READER_MCP_TRANSPORT:-}" == "ts" ]] || [[ "${1:-}" == "ts" ]]
-}
-
 resolve_transport() {
 	if [[ -n "${IMAGE_READER_MCP_TRANSPORT:-}" ]]; then
 		printf '%s\n' "${IMAGE_READER_MCP_TRANSPORT}"
@@ -38,13 +34,6 @@ resolve_transport() {
 	fi
 	printf '%s\n' "stdio"
 }
-
-if use_ts_transport "$@"; then
-	if [[ "${1:-}" == "ts" ]]; then
-		shift
-	fi
-	exec node "$TS_ENTRY" "$@"
-fi
 
 if bin="$(resolve_rust_bin)"; then
 	transport="$(resolve_transport)"
