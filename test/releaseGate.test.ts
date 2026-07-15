@@ -13,5 +13,13 @@ describe('image reader release gate', () => {
     expect(report.summary.failed).toBe(0);
     expect(report.checks.some((check) => check.id === 'safety:byte_limit')).toBe(true);
     expect(report.checks.some((check) => check.id === 'examples:metadata_request')).toBe(true);
-  });
+    expect(report.checks.some((check) => check.id === 'mcp:rust_adapter_default')).toBe(true);
+    expect(report.checks.some((check) => check.id === 'mcp:ts_adapter_deleted')).toBe(true);
+    expect(report.checks.find((check) => check.id === 'mcp:rust_adapter_default')?.status).toBe(
+      'passed'
+    );
+    expect(report.checks.find((check) => check.id === 'mcp:ts_adapter_deleted')?.status).toBe(
+      'passed'
+    );
+  }, 300_000);
 });

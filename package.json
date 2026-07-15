@@ -14,7 +14,7 @@
     "LICENSE"
   ],
   "exports": {
-    ".": "./dist/index.js"
+    ".": "./dist/doctor-cli.js"
   },
   "publishConfig": {
     "access": "public"
@@ -42,7 +42,7 @@
   "scripts": {
     "build:rust": "cargo build --release -p image-reader-core -p image-reader-cli -p image-reader-mcp-server && bun scripts/stage-rust-mcp.ts",
     "test:rust": "cargo test",
-    "build": "bunup --no-dts",
+    "build": "bun build src/doctor-cli.ts --outdir dist --target node",
     "watch": "tsc --watch",
     "test": "bun test",
     "test:watch": "bun test --watch",
@@ -51,15 +51,17 @@
     "format": "biome format --write .",
     "check": "biome check .",
     "check:fix": "biome check --write .",
-    "validate": "bun run check && bun run typecheck && bun run test",
-    "doctor": "bun run src/index.ts doctor",
+    "check:ts-adapter-deleted": "bash scripts/check-ts-adapter-deletion-ready.sh",
+    "check:no-ts-stdio-mcp": "bash scripts/check-no-ts-stdio-mcp.sh",
+    "validate": "bun run check && bun run typecheck && bun run test && bun run check:ts-adapter-deleted && bun run check:no-ts-stdio-mcp",
+    "doctor": "bun run src/doctor-cli.ts",
     "benchmark:release-gate": "bun scripts/release-gate.ts",
     "sync:server-json": "bun scripts/sync-server-json.ts",
     "version-packages": "changeset version && bun run sync:server-json",
-    "start": "node dist/index.js",
+    "start": "./bin/image-reader-mcp",
     "clean": "rm -rf dist coverage",
-    "prepublishOnly": "bun run clean && bun run build",
-    "release": "bun run typecheck && bun run check && bun run build && bun test && changeset publish"
+    "prepublishOnly": "bun run clean && bun run build && bun run build:rust",
+    "release": "bun run typecheck && bun run check && bun run build && bun test && bun run check:ts-adapter-deleted && changeset publish"
   },
   "dependencies": {
     "@sylphx/reader-evidence": "github:SylphxAI/reader-evidence",
