@@ -2,6 +2,11 @@
 
 # 🖼️ Image Reader MCP
 
+<p align="center">
+  <img src="docs/banner.png" alt="image-reader-mcp banner" width="100%" />
+</p>
+
+
 ### Your agent looked at the image. **Did it see the truth?**
 
 Evidence-first image reading for AI agents. One call turns any local image into an
