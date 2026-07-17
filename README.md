@@ -3,9 +3,8 @@
 # 🖼️ Image Reader MCP
 
 <p align="center">
-  <img src="docs/banner.png" alt="image-reader-mcp banner" width="100%" />
+  <img src="https://mark.sylphx.com/api/v1/banner?type=holo&theme=tokyonight&text=image+reader+mcp&desc=Evidence-first+image+reading+for+AI+agents+%E2%80%94+metadata%2C+OCR+text%2C+regions%2C+and+ci&height=200&animation=rise&credit=0" alt="image-reader-mcp — Sylphx Mark banner" width="100%" />
 </p>
-
 
 ### Your agent looked at the image. **Did it see the truth?**
 
