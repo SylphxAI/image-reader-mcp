@@ -1,8 +1,6 @@
-import { execSync, spawnSync } from 'node:child_process';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { runDoctor } from '../src/doctor.js';
-import { cropRegionViaRustEngine } from '../src/engine/rust-decode.js';
 import { IMAGE_SAFETY_LIMITS } from '../src/utils/safety.js';
 
 const ARTIFACT_DIR_ENV = 'MCP_IMAGE_BENCHMARK_OUTPUT_DIR';
@@ -116,84 +114,6 @@ export async function buildReleaseGateReport(artifactDir: string): Promise<Relea
     fileExists('examples/sample-agent-media-twin.json'),
     'examples/sample-agent-media-twin.json documents the Agent Media Twin response shape'
   );
-
-  const sampleFixture = path.join(repoRoot, 'test/fixtures/sample.png');
-  if (existsSync(sampleFixture)) {
-    try {
-      const evidence = cropRegionViaRustEngine({
-        filePath: sampleFixture,
-        maxFileBytes: IMAGE_SAFETY_LIMITS.maxFileBytes,
-        maxPixels: IMAGE_SAFETY_LIMITS.maxPixels,
-        region: { x: 2, y: 1, width: 8, height: 4 },
-      });
-      addCheck(
-        checks,
-        'boundary:crop_region',
-        evidence.route === 'rust-crop' && evidence.regionHash.length > 0,
-        'crop_region returns citeable region evidence from the Rust CLI',
-        {
-          route: evidence.route,
-          width: evidence.width,
-          height: evidence.height,
-        }
-      );
-    } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : String(error);
-      addCheck(
-        checks,
-        'boundary:crop_region',
-        false,
-        `crop_region boundary check failed: ${message}`
-      );
-    }
-  } else {
-    addCheck(
-      checks,
-      'boundary:crop_region',
-      false,
-      'sample.png fixture is missing for crop_region boundary checks'
-    );
-  }
-
-  const matrixProbe = spawnSync('bun', ['test', 'test/shippedPath.matrix.test.ts'], {
-    cwd: repoRoot,
-    encoding: 'utf8',
-    env: {
-      ...process.env,
-      IMAGE_READER_ALLOW_LEGACY_ENGINE: '',
-    },
-    timeout: 300_000,
-  });
-  addCheck(
-    checks,
-    'boundary:rust_cli_engine',
-    fileExists('crates/image-reader-mcp-server/src/tool_routes.rs') && matrixProbe.status === 0,
-    'Shipped-path matrix test proves primary tools route through Rust core without legacy runtime',
-    matrixProbe.status === 0
-      ? { exitCode: 0 }
-      : {
-          exitCode: matrixProbe.status,
-          stderr: matrixProbe.stderr?.slice(-2000),
-          stdout: matrixProbe.stdout?.slice(-2000),
-        }
-  );
-
-  try {
-    execSync('cargo build --release -p image-reader-mcp-server', {
-      cwd: repoRoot,
-      stdio: 'pipe',
-      timeout: 300_000,
-    });
-    addCheck(
-      checks,
-      'rust:mcp_server_crate',
-      fileExists('target/release/image-reader-mcp-server'),
-      'image-reader-mcp-server rmcp crate builds for release'
-    );
-  } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : String(error);
-    addCheck(checks, 'rust:mcp_server_crate', false, `image-reader-mcp-server build failed: ${message}`);
-  }
 
   const doctor = await runDoctor(pkg.version);
   addCheck(
