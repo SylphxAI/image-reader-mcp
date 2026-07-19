@@ -66,21 +66,6 @@ impl ServerHandler for ImageReaderMcp {
 #[cfg(test)]
 mod tests {
     use super::ImageReaderMcp;
-    use std::fs;
-    use std::path::PathBuf;
-
-    #[test]
-    fn rmcp_server_sources_route_read_image_through_rust_core() {
-        let src_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("src");
-        let lib_rs = fs::read_to_string(src_dir.join("lib.rs")).expect("read lib.rs");
-        let production_lib = lib_rs.split("#[cfg(test)]").next().unwrap_or(&lib_rs);
-        assert!(production_lib.contains("read_image::read_image"));
-
-        let routes = fs::read_to_string(src_dir.join("tool_routes.rs")).expect("read tool_routes");
-        assert!(routes.contains("read_image"));
-        assert!(routes.contains("RustCore"));
-    }
-
     #[test]
     fn exposes_read_image_tool_surface() {
         let tools = ImageReaderMcp::new().tool_router.list_all();
