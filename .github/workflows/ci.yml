@@ -42,8 +42,5 @@ jobs:
       - name: Run tests
         run: bun test
 
-      - name: Public surface audit (README discovery)
-        run: bun test test/readmeDiscovery.test.ts
-
       - name: Release gate
         run: bun run benchmark:release-gate

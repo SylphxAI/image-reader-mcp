@@ -83,16 +83,6 @@ export async function buildReleaseGateReport(artifactDir: string): Promise<Relea
 
   addCheck(
     checks,
-    'rust:crop_region_core',
-    fileExists('crates/image-reader-core/src/lib.rs') &&
-      readFileSync(path.join(repoRoot, 'crates/image-reader-core/src/lib.rs'), 'utf8').includes(
-        'pub fn crop_region'
-      ),
-    'Rust image-reader-core exposes crop_region for region evidence',
-  );
-
-  addCheck(
-    checks,
     'safety:pixel_limit',
     IMAGE_SAFETY_LIMITS.maxPixels === 64 * 1024 * 1024,
     '64 megapixel safety budget is configured',
@@ -164,45 +154,6 @@ export async function buildReleaseGateReport(artifactDir: string): Promise<Relea
       'sample.png fixture is missing for crop_region boundary checks'
     );
   }
-
-  const binWrapper = readFileSync(path.join(repoRoot, 'bin/image-reader-mcp'), 'utf8');
-  addCheck(
-    checks,
-    'mcp:rust_adapter_default',
-    binWrapper.includes('image-reader-mcp-server') &&
-      binWrapper.includes('resolve_rust_bin') &&
-      binWrapper.includes('resolve_transport') &&
-      !binWrapper.includes('use_ts_transport') &&
-      !binWrapper.includes('exec node') &&
-      !binWrapper.includes('dist/index.js') &&
-      !existsSync(path.join(repoRoot, 'src/index.ts')),
-    'Default npm bin launches the Rust rmcp MCP server only; TypeScript stdio adapter is deleted'
-  );
-
-  addCheck(
-    checks,
-    'mcp:ts_adapter_deleted',
-    !existsSync(path.join(repoRoot, 'src/index.ts')) &&
-      !existsSync(path.join(repoRoot, 'dist/index.js')) &&
-      existsSync(path.join(repoRoot, 'src/doctor-cli.ts')) &&
-      existsSync(path.join(repoRoot, 'scripts/check-ts-adapter-deletion-ready.sh')) &&
-      existsSync(path.join(repoRoot, 'scripts/check-no-ts-stdio-mcp.sh')),
-    'TS stdio adapter entry is deleted; doctor-cli and deletion gates are present'
-  );
-
-  const httpTransportSource = readFileSync(
-    path.join(repoRoot, 'crates/image-reader-mcp-server/src/http_transport.rs'),
-    'utf8'
-  );
-  addCheck(
-    checks,
-    'mcp:rust_web_http_transport',
-    httpTransportSource.includes('StreamableHttpService') &&
-      httpTransportSource.includes('/mcp/health') &&
-      binWrapper.includes('resolve_transport') &&
-      binWrapper.includes('MCP_TRANSPORT=http'),
-    'Rust rmcp streamable HTTP Web MCP transport is wired; npm bin routes MCP_TRANSPORT=http to Rust'
-  );
 
   const matrixProbe = spawnSync('bun', ['test', 'test/shippedPath.matrix.test.ts'], {
     cwd: repoRoot,

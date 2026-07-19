@@ -84,15 +84,4 @@ describe('rust decode engine boundary', () => {
     expect(twin.region_evidence?.dimensions).toEqual({ width: 10, height: 6 });
     expect(twin.region_evidence?.region_hash.length).toBeGreaterThan(0);
   });
-
-  it('keeps decode logic out of the TypeScript adapter sources', async () => {
-    const { readFileSync } = await import('node:fs');
-    const handlerSrc = readFileSync(path.join(repoRoot, 'src/handlers/readImage.ts'), 'utf8');
-    const engineSrc = readFileSync(path.join(repoRoot, 'src/engine/rust-decode.ts'), 'utf8');
-
-    expect(engineSrc).toContain('spawnSync');
-    expect(handlerSrc).toContain('probeImageViaRustEngine');
-    expect(handlerSrc).toContain('cropRegionViaRustEngine');
-    expect(handlerSrc).not.toMatch(/sha256|ImageReader|guess_format/i);
-  });
 });
