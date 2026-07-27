@@ -11,10 +11,13 @@ on:
 jobs:
   validate:
     name: Validate
-    runs-on: ubuntu-latest
+    runs-on: sylphx-linux-standard
     steps:
       - name: Checkout repository
         uses: actions/checkout@v7.0.0
+
+      - name: Enforce owned CI runner profiles
+        run: python3 .github/scripts/check-owned-runner-profiles.py
 
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
