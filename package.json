@@ -1,6 +1,6 @@
 {
   "name": "@sylphx/image-reader-mcp",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "mcpName": "io.github.SylphxAI/image-reader-mcp",
   "description": "Iris \u2014 Evidence-first image reading for AI agents \u2014 metadata, OCR text, regions, and citeable evidence without generative LLM.",
   "type": "module",

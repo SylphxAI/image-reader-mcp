@@ -1,36 +1,30 @@
-# Iris — brand npm publish readiness
+# Iris — brand npm publish (expand–contract)
 
-**Publish authority:** this repository only (not a multi-product monorepo).
+**Publish authority:** this repository only.
 
 | Field | Value |
 | --- | --- |
 | Brand | **Iris** |
+| Canonical brand npm id | `@sylphx/iris` |
 | Transitional npm id | `@sylphx/image-reader-mcp` |
-| Target brand npm id | `@sylphx/iris` |
-| Brand bin | `iris` |
 | Marketplace title | Iris (`server.json`) |
 
-## Current policy
+## Policy (expand → contract)
 
-1. Ship/publish `@sylphx/image-reader-mcp` from this repo (existing CI/release train).
-2. Optional second publish of `@sylphx/iris` **from this same repo** (same artifacts, renamed package.json at pack time).
-3. Never publish brand packages from any other repository.
+1. **One codebase / one version** — never two products.
+2. **Expand:** dual-publish `@sylphx/image-reader-mcp@X.Y.Z` and `@sylphx/iris@X.Y.Z` (same artifacts).
+3. **Contract (later):** `npm deprecate` transitional toward brand; keep bins as long as cheap.
+4. Workflow: `.github/workflows/publish-brand-alias.yml` (org `NPM_TOKEN`).
 
-## Dry-run (no npm auth required)
+## User install
 
 ```bash
-# Transitional package as configured
-npm pack --dry-run
-# Or product-specific brand pack plan script when present:
-# bun scripts/brand-pack-plan.ts
+# preferred
+npm i -g @sylphx/iris
+# transitional still valid during expand
+npm i -g @sylphx/image-reader-mcp
 ```
-
-## Blockers for live brand publish
-
-- npm automation token / 2FA for `@sylphx` scope
-- Changeset/version alignment with transitional package
-- Registry readback proof after publish
 
 ## Authority
 
-Publish and brand packages only from **this repository**. No central Instruments monorepo.
+No central Instruments monorepo. Brand alias ships only from this product repo.
