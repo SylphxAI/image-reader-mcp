@@ -189,6 +189,13 @@ export async function buildReleaseGateReport(artifactDir: string): Promise<Relea
     'Public proof script is present'
   );
 
+  addCheck(
+    checks,
+    'docs:brand_publish',
+    fileExists('docs/BRAND_PUBLISH.md'),
+    'Brand publish readiness doc is present'
+  );
+
   const passed = checks.filter((check) => check.status === 'passed').length;
   const failed = checks.length - passed;
 
