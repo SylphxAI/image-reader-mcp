@@ -6,7 +6,6 @@ Use Iris when agents need **measurable image facts** (dimensions, metadata, OCR 
 
 ```bash
 npx @sylphx/image-reader-mcp
-# brand bin
 iris doctor
 ```
 
@@ -15,6 +14,8 @@ iris doctor
 ```ts
 import { Iris } from '@sylphx/image-reader-mcp/sdk'
 const twin = await Iris.create().read({ path: './sample.png' })
+// optional OCR (requires tesseract on PATH)
+const ocr = await Iris.create().read({ path: './sample.png', include_ocr: true })
 ```
 
 ## Tool
@@ -23,6 +24,9 @@ const twin = await Iris.create().read({ path: './sample.png' })
 | --- | --- |
 | `read_image` | Agent Media Twin: dimensions, metadata, optional OCR+bbox, trust warnings |
 
-Evidence is on the result (regions, warnings, provenance) — not a separate tool.
+## Evidence contract
+
+Results include regions, warnings, provenance. There is **no** `evidence_first` tool.
+OCR is honest when tesseract is absent (surface unavailable; do not invent text).
 
 Family: https://github.com/SylphxAI/instruments
