@@ -62,6 +62,14 @@ an image, not a creative caption.**
 
 ## See it work
 
+### Install (30 seconds)
+
+```bash
+npm install -g @sylphx/image-reader-mcp
+iris doctor
+claude mcp add iris -- npx @sylphx/image-reader-mcp
+```
+
 **Install once. Call once.**
 
 ```bash
