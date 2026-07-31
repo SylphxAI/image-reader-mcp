@@ -59,6 +59,28 @@ export const readImageArgsSchema = z.object({
     .positive()
     .optional()
     .describe('Maximum width or height when resizing the cropped region for evidence.'),
+  include_layout: z
+    .boolean()
+    .optional()
+    .describe(
+      'When OCR lines exist, cluster them into reading-order text blocks (image architecture). Defaults to true when include_ocr is true.'
+    ),
+  include_agent_map: z
+    .boolean()
+    .optional()
+    .describe(
+      'Return a text-only agent_map so non-vision models can read image structure. Defaults to true.'
+    ),
+  include_palette: z
+    .boolean()
+    .optional()
+    .describe('Sample an approximate local color palette via sharp (not ML). Defaults to false.'),
+  include_optional_llm: z
+    .boolean()
+    .optional()
+    .describe(
+      'Optional caption via IRIS_OPTIONAL_LLM_URL. Off by default; never authority over OCR/layout evidence.'
+    ),
 });
 
 export const agentMediaTwinSchema = z.object({
@@ -99,6 +121,44 @@ export const agentMediaTwinSchema = z.object({
       route: z.string(),
       resized: z.boolean().optional(),
       image_base64: z.string().optional(),
+    })
+    .optional(),
+  layout: z
+    .object({
+      policy: z.string(),
+      block_count: z.number().int().nonnegative(),
+      blocks: z.array(
+        z.object({
+          id: z.string(),
+          kind: z.literal('text_block'),
+          text: z.string(),
+          bbox: boundingBoxSchema,
+          line_count: z.number().int().nonnegative(),
+          reading_order: z.number().int().positive(),
+        })
+      ),
+      full_text: z.string(),
+      warnings: z.array(z.string()),
+    })
+    .optional(),
+  agent_map: z
+    .object({
+      policy: z.string(),
+      filename: z.string(),
+      mime: z.string(),
+      dimensions: imageDimensionsSchema,
+      outline: z.string(),
+      text_present: z.boolean(),
+      block_count: z.number().int().nonnegative(),
+      palette: z.array(z.object({ hex: z.string(), approx_share: z.number() })).optional(),
+      optional_llm: z
+        .object({
+          available: z.boolean(),
+          skipped_reason: z.string().optional(),
+          route: z.string().optional(),
+          caption: z.string().optional(),
+        })
+        .optional(),
     })
     .optional(),
   trust_warnings: z.array(z.string()),

@@ -9,6 +9,7 @@ import {
 } from '../engine/rust-decode.js';
 import { text, tool, toolError } from '../mcp.js';
 import { type AgentMediaTwin, readImageArgsSchema } from '../schemas/readImage.js';
+import { applyImageIntelligence } from '../utils/applyImageIntelligence.js';
 import { ErrorCode, ImageError } from '../utils/errors.js';
 import { collectTrustWarnings, redactGpsFields } from '../utils/metadata.js';
 import { runTesseractOcr } from '../utils/ocr.js';
@@ -74,7 +75,7 @@ const readMetadata = async (
 
 export const readImage = tool()
   .description(
-    'Evidence-first image reader. Returns an Agent Media Twin with filename, mime, dimensions, metadata, optional OCR lines with bounding boxes, and trust warnings. No generative LLM is used.'
+    'Evidence-first image reader for agents (read, not vague vision). Returns Agent Media Twin: geometry, metadata, OCR lines/words, layout blocks, text agent_map, optional palette, optional non-authority LLM caption. Local-first; generative path off by default.'
   )
   .input(readImageArgsSchema)
   .handler(async ({ input }) => {
@@ -203,6 +204,8 @@ export const readImage = tool()
           ...(ocr.words !== undefined ? { words: ocr.words } : {}),
         };
       }
+
+      twin = await applyImageIntelligence(twin, resolvedPath, input, includeOcr);
 
       if (input.region !== undefined) {
         if (!useRustDecode) {

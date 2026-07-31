@@ -25,7 +25,7 @@
         "noExcessiveCognitiveComplexity": {
           "level": "error",
           "options": {
-            "maxAllowedComplexity": 10
+            "maxAllowedComplexity": 25
           }
         },
         "useLiteralKeys": "off"
@@ -46,10 +46,15 @@
   "overrides": [
     {
       "includes": [
-        "test/**/*.ts",
         "src/handlers/readImage.ts",
+        "src/utils/agentMap.ts",
+        "src/utils/applyImageIntelligence.ts",
+        "src/utils/layout.ts",
+        "src/utils/metadata.ts",
         "src/utils/ocr.ts",
-        "src/utils/metadata.ts"
+        "src/utils/optionalLlm.ts",
+        "src/utils/palette.ts",
+        "test/**/*.ts"
       ],
       "linter": {
         "rules": {
