@@ -16,6 +16,7 @@ export interface OcrResult {
   /** Adapter route for evidence contract honesty */
   route?: string;
   languages?: string[];
+  languages_warning?: string;
   line_count?: number;
   dropped_low_confidence?: number;
   lines: OcrLine[];
@@ -148,6 +149,7 @@ export const parseTesseractTsv = (
   };
 };
 
+
 export const isTesseractAvailable = (): boolean => {
   const result = spawnSync('tesseract', ['--version'], {
     timeout: OCR_HEALTHCHECK_TIMEOUT_MS,
@@ -156,6 +158,37 @@ export const isTesseractAvailable = (): boolean => {
   });
   return result.status === 0;
 };
+
+/** List installed Tesseract traineddata languages (honest empty when unavailable). */
+export const listTesseractLanguages = (): { available: boolean; languages: string[]; warning?: string } => {
+  if (!isTesseractAvailable()) {
+    return {
+      available: false,
+      languages: [],
+      warning: 'Tesseract is not installed or not available on PATH.',
+    };
+  }
+  const result = spawnSync('tesseract', ['--list-langs'], {
+    encoding: 'utf8',
+    timeout: 5_000,
+    windowsHide: true,
+  });
+  if (result.status !== 0) {
+    const stderr = typeof result.stderr === 'string' ? result.stderr.trim() : '';
+    return {
+      available: false,
+      languages: [],
+      warning: stderr || 'tesseract --list-langs failed',
+    };
+  }
+  const out = `${result.stdout ?? ''}\n${result.stderr ?? ''}`;
+  const languages = out
+    .split(/\r?\n/)
+    .map((l) => l.trim())
+    .filter((l) => l && !l.toLowerCase().includes('list of available languages') && !l.startsWith('Error'));
+  return { available: true, languages };
+};
+
 
 export type RunOcrOptions = {
   languages?: string[];
@@ -185,6 +218,11 @@ export const runTesseractOcr = (
       dropped_low_confidence: 0,
     };
   }
+
+  const installed = listTesseractLanguages();
+  const missingLangs = languages.filter(
+    (lang) => installed.available && !installed.languages.includes(lang),
+  );
 
   const languageArg = languages.join('+');
   const result = spawnSync('tesseract', [imagePath, 'stdout', '-l', languageArg, 'tsv'], {
@@ -229,6 +267,11 @@ export const runTesseractOcr = (
     lines: parsed.lines,
     line_count: parsed.lines.length,
     dropped_low_confidence: parsed.dropped_low_confidence,
+    ...(missingLangs.length
+      ? {
+          languages_warning: `Requested OCR language(s) not listed by tesseract --list-langs: ${missingLangs.join(', ')}. Installed: ${installed.languages.join(', ') || '(none)'}.`,
+        }
+      : {}),
     ...(includeWords ? { words: parsed.words } : {}),
   };
 };

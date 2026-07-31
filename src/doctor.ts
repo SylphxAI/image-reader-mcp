@@ -4,6 +4,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import sharp from 'sharp';
 import { resolveRustCliBinary } from './engine/rust-decode.js';
+import { listTesseractLanguages } from './utils/ocr.js';
 import { IMAGE_SAFETY_LIMITS } from './utils/safety.js';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
@@ -31,10 +32,16 @@ const probeTesseract = (): DoctorCheck => {
 
   if (result.status === 0) {
     const versionLine = (result.stdout || result.stderr || '').split('\n')[0]?.trim();
+    const langs = listTesseractLanguages();
+    const langNote = langs.available
+      ? ` languages=[${langs.languages.join(',') || 'none'}]`
+      : '';
     return {
       id: 'tesseract',
       status: 'ok',
-      message: versionLine ? `Tesseract available (${versionLine})` : 'Tesseract available',
+      message: versionLine
+        ? `Tesseract available (${versionLine})${langNote}`
+        : `Tesseract available${langNote}`,
     };
   }
 

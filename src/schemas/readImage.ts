@@ -75,6 +75,7 @@ export const agentMediaTwinSchema = z.object({
       skipped_reason: z.string().optional(),
       route: z.string().optional(),
       languages: z.array(z.string()).optional(),
+      languages_warning: z.string().optional(),
       line_count: z.number().int().nonnegative().optional(),
       dropped_low_confidence: z.number().int().nonnegative().optional(),
       lines: z.array(ocrLineSchema),
