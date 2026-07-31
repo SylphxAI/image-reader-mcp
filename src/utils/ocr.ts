@@ -4,17 +4,42 @@ import type { OcrLine } from '../schemas/readImage.js';
 const OCR_HEALTHCHECK_TIMEOUT_MS = 2_500;
 const OCR_TIMEOUT_MS = 60_000;
 
-interface OcrResult {
-  available: boolean;
-  skipped_reason?: string;
-  lines: OcrLine[];
+export interface OcrWord {
+  text: string;
+  bbox: { x: number; y: number; width: number; height: number };
+  confidence?: number;
 }
 
-const parseTesseractTsv = (raw: string): OcrLine[] => {
-  const lines = raw.split(/\r?\n/).filter((line) => line.length > 0);
-  if (lines.length <= 1) return [];
+export interface OcrResult {
+  available: boolean;
+  skipped_reason?: string;
+  /** Adapter route for evidence contract honesty */
+  route?: string;
+  languages?: string[];
+  line_count?: number;
+  dropped_low_confidence?: number;
+  lines: OcrLine[];
+  words?: OcrWord[];
+}
 
-  const rows = lines.slice(1).map((line) => line.split('\t'));
+export interface ParseTesseractOptions {
+  minConfidence?: number;
+  includeWords?: boolean;
+}
+
+/** Pure TSV parser — offline-testable evidence path for OCR bbox lines. */
+export const parseTesseractTsv = (
+  raw: string,
+  options: ParseTesseractOptions = {},
+): { lines: OcrLine[]; words: OcrWord[]; dropped_low_confidence: number } => {
+  const minConfidence = options.minConfidence ?? 0;
+  const includeWords = options.includeWords ?? false;
+  const linesRaw = raw.split(/\r?\n/).filter((line) => line.length > 0);
+  if (linesRaw.length <= 1) {
+    return { lines: [], words: [], dropped_low_confidence: 0 };
+  }
+
+  const rows = linesRaw.slice(1).map((line) => line.split('\t'));
   const lineMap = new Map<
     number,
     {
@@ -28,6 +53,9 @@ const parseTesseractTsv = (raw: string): OcrLine[] => {
       }>;
     }
   >();
+
+  let dropped = 0;
+  const flatWords: OcrWord[] = [];
 
   for (const columns of rows) {
     if (columns.length < 12) continue;
@@ -46,6 +74,12 @@ const parseTesseractTsv = (raw: string): OcrLine[] => {
 
     if (!Number.isFinite(lineNum) || !Number.isFinite(left) || !Number.isFinite(top)) continue;
 
+    const confVal = Number.isFinite(conf) ? conf : 0;
+    if (confVal < minConfidence) {
+      dropped += 1;
+      continue;
+    }
+
     const bucket = lineMap.get(lineNum) ?? { words: [] };
     bucket.words.push({
       text,
@@ -53,9 +87,22 @@ const parseTesseractTsv = (raw: string): OcrLine[] => {
       top,
       width: Number.isFinite(width) ? width : 0,
       height: Number.isFinite(height) ? height : 0,
-      conf: Number.isFinite(conf) ? conf : 0,
+      conf: confVal,
     });
     lineMap.set(lineNum, bucket);
+
+    if (includeWords) {
+      flatWords.push({
+        text,
+        bbox: {
+          x: left,
+          y: top,
+          width: Number.isFinite(width) ? width : 0,
+          height: Number.isFinite(height) ? height : 0,
+        },
+        confidence: confVal,
+      });
+    }
   }
 
   const ocrLines: OcrLine[] = [];
@@ -92,7 +139,13 @@ const parseTesseractTsv = (raw: string): OcrLine[] => {
     });
   }
 
-  return ocrLines.sort((a, b) => a.bbox.y - b.bbox.y || a.bbox.x - b.bbox.x);
+  return {
+    lines: ocrLines.sort((a, b) => a.bbox.y - b.bbox.y || a.bbox.x - b.bbox.x),
+    words: includeWords
+      ? flatWords.sort((a, b) => a.bbox.y - b.bbox.y || a.bbox.x - b.bbox.x)
+      : [],
+    dropped_low_confidence: dropped,
+  };
 };
 
 export const isTesseractAvailable = (): boolean => {
@@ -104,16 +157,36 @@ export const isTesseractAvailable = (): boolean => {
   return result.status === 0;
 };
 
-export const runTesseractOcr = (imagePath: string, languages: string[]): OcrResult => {
+export type RunOcrOptions = {
+  languages?: string[];
+  minConfidence?: number;
+  includeWords?: boolean;
+};
+
+export const runTesseractOcr = (
+  imagePath: string,
+  languagesOrOptions: string[] | RunOcrOptions = ['eng'],
+): OcrResult => {
+  const options: RunOcrOptions = Array.isArray(languagesOrOptions)
+    ? { languages: languagesOrOptions }
+    : languagesOrOptions;
+  const languages = options.languages?.length ? options.languages : ['eng'];
+  const minConfidence = options.minConfidence ?? 0;
+  const includeWords = options.includeWords ?? false;
+
   if (!isTesseractAvailable()) {
     return {
       available: false,
       skipped_reason: 'Tesseract is not installed or not available on PATH.',
+      route: 'tesseract_tsv',
+      languages,
       lines: [],
+      line_count: 0,
+      dropped_low_confidence: 0,
     };
   }
 
-  const languageArg = languages.length > 0 ? languages.join('+') : 'eng';
+  const languageArg = languages.join('+');
   const result = spawnSync('tesseract', [imagePath, 'stdout', '-l', languageArg, 'tsv'], {
     encoding: 'utf8',
     timeout: OCR_TIMEOUT_MS,
@@ -125,7 +198,11 @@ export const runTesseractOcr = (imagePath: string, languages: string[]): OcrResu
     return {
       available: false,
       skipped_reason: `Tesseract failed to start: ${result.error.message}`,
+      route: 'tesseract_tsv',
+      languages,
       lines: [],
+      line_count: 0,
+      dropped_low_confidence: 0,
     };
   }
 
@@ -135,13 +212,23 @@ export const runTesseractOcr = (imagePath: string, languages: string[]): OcrResu
       available: false,
       skipped_reason:
         stderr.length > 0 ? stderr : `Tesseract exited with status ${String(result.status)}.`,
+      route: 'tesseract_tsv',
+      languages,
       lines: [],
+      line_count: 0,
+      dropped_low_confidence: 0,
     };
   }
 
   const stdout = typeof result.stdout === 'string' ? result.stdout : '';
+  const parsed = parseTesseractTsv(stdout, { minConfidence, includeWords });
   return {
     available: true,
-    lines: parseTesseractTsv(stdout),
+    route: 'tesseract_tsv',
+    languages,
+    lines: parsed.lines,
+    line_count: parsed.lines.length,
+    dropped_low_confidence: parsed.dropped_low_confidence,
+    ...(includeWords ? { words: parsed.words } : {}),
   };
 };

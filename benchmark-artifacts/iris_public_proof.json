@@ -1,12 +1,21 @@
 {
   "product": "Iris",
   "sample": "/home/codex/src/github.com/SylphxAI/image-reader-mcp/test/fixtures/sample.png",
-  "ms": 12.932511000000005,
+  "ms": 12.502320999999995,
   "ok": true,
   "bytes": 379,
+  "dimensions": {
+    "width": 32,
+    "height": 16
+  },
+  "trustWarnings": 2,
+  "decodeRoute": "Decode route: rust-probe (source hash 96bf506cb5d8…).",
   "tesseractAvailable": false,
   "ocrAttempted": false,
   "ocrOk": null,
+  "ocrSummary": null,
+  "ocrHonesty": "tesseract absent — OCR skipped without invented text",
   "hasSkill": true,
-  "generatedAt": "2026-07-31T17:22:27.184Z"
+  "brandPublishDoc": true,
+  "generatedAt": "2026-07-31T18:18:10.666Z"
 }

@@ -34,6 +34,16 @@ export const readImageArgsSchema = z.object({
     .array(z.string().min(1))
     .optional()
     .describe('OCR language codes for Tesseract (e.g. ["eng"]). Defaults to ["eng"].'),
+  ocr_min_confidence: z
+    .number()
+    .min(0)
+    .max(100)
+    .optional()
+    .describe('Drop OCR words below this Tesseract confidence (0-100). Defaults to 0.'),
+  include_ocr_words: z
+    .boolean()
+    .optional()
+    .describe('When OCR is enabled, also return word-level bbox evidence. Defaults to false.'),
   region: boundingBoxSchema
     .optional()
     .describe('Optional pixel region to crop and attach as citeable evidence.'),
@@ -63,7 +73,20 @@ export const agentMediaTwinSchema = z.object({
     .object({
       available: z.boolean(),
       skipped_reason: z.string().optional(),
+      route: z.string().optional(),
+      languages: z.array(z.string()).optional(),
+      line_count: z.number().int().nonnegative().optional(),
+      dropped_low_confidence: z.number().int().nonnegative().optional(),
       lines: z.array(ocrLineSchema),
+      words: z
+        .array(
+          z.object({
+            text: z.string(),
+            bbox: boundingBoxSchema,
+            confidence: z.number().min(0).max(100).optional(),
+          }),
+        )
+        .optional(),
     })
     .optional(),
   region_evidence: z

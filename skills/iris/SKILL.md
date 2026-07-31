@@ -15,7 +15,13 @@ iris doctor
 import { Iris } from '@sylphx/image-reader-mcp/sdk'
 const twin = await Iris.create().read({ path: './sample.png' })
 // optional OCR (requires tesseract on PATH)
-const ocr = await Iris.create().read({ path: './sample.png', include_ocr: true })
+const ocr = await Iris.create().read({
+  path: './sample.png',
+  include_ocr: true,
+  ocr_languages: ['eng'],
+  ocr_min_confidence: 50,
+  include_ocr_words: false,
+})
 ```
 
 ## Tool
@@ -23,6 +29,17 @@ const ocr = await Iris.create().read({ path: './sample.png', include_ocr: true }
 | Tool | Job |
 | --- | --- |
 | `read_image` | Agent Media Twin: dimensions, metadata, optional OCR+bbox, trust warnings |
+
+### OCR flags (evidence-first)
+
+| Flag | Meaning |
+| --- | --- |
+| `include_ocr` | Run local Tesseract TSV adapter (default false) |
+| `ocr_languages` | Tesseract langs, e.g. `["eng","chi_sim"]` |
+| `ocr_min_confidence` | Drop words below confidence (0–100) |
+| `include_ocr_words` | Also return word-level bbox evidence |
+
+OCR result carries `route=tesseract_tsv`, `languages`, `line_count`, `dropped_low_confidence`.
 
 ## Evidence contract
 

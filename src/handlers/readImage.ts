@@ -184,11 +184,20 @@ export const readImage = tool()
       }
 
       if (includeOcr) {
-        const ocr = runTesseractOcr(resolvedPath, ocrLanguages);
+        const ocr = runTesseractOcr(resolvedPath, {
+          languages: ocrLanguages,
+          minConfidence: input.ocr_min_confidence ?? 0,
+          includeWords: input.include_ocr_words ?? false,
+        });
         twin.ocr = {
           available: ocr.available,
           lines: ocr.lines,
+          route: ocr.route,
+          languages: ocr.languages,
+          line_count: ocr.line_count,
+          dropped_low_confidence: ocr.dropped_low_confidence,
           ...(ocr.skipped_reason !== undefined ? { skipped_reason: ocr.skipped_reason } : {}),
+          ...(ocr.words !== undefined ? { words: ocr.words } : {}),
         };
       }
 

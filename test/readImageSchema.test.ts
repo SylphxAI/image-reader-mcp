@@ -23,11 +23,15 @@ describe('readImageArgsSchema', () => {
       include_metadata: false,
       include_ocr: true,
       ocr_languages: ['eng', 'deu'],
+      ocr_min_confidence: 60,
+      include_ocr_words: true,
     });
     expect(parsed.success).toBe(true);
     if (parsed.success) {
       expect(parsed.data.include_ocr).toBe(true);
       expect(parsed.data.ocr_languages).toEqual(['eng', 'deu']);
+      expect(parsed.data.ocr_min_confidence).toBe(60);
+      expect(parsed.data.include_ocr_words).toBe(true);
     }
   });
 });
