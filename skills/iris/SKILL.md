@@ -46,7 +46,6 @@ OCR result carries `route=tesseract_tsv`, `languages`, `line_count`, `dropped_lo
 Results include regions, warnings, provenance. There is **no** `evidence_first` tool.
 OCR is honest when tesseract is absent (surface unavailable; do not invent text).
 
-Family: https://github.com/SylphxAI/instruments
 
 ## Multi-language OCR residual
 

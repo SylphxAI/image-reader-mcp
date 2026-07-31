@@ -1,5 +1,5 @@
 /**
- * Iris SDK — programmatic image evidence API (Sylphx Instruments).
+ * Iris SDK — programmatic image evidence API (Sylphx).
  * Isomorphic with MCP tool `read_image`.
  */
 import { readImage } from './handlers/readImage.js';

@@ -2,7 +2,7 @@
 
 # Iris
 
-### Image evidence for agents *(Sylphx Instruments)*
+### Image evidence for agents 
 
 **Iris** (transitional package `@sylphx/image-reader-mcp`) — local-first image facts, not default VLM guesses.
 
@@ -28,8 +28,7 @@ SOTA family roadmap: [docs/roadmap/sota-family-roadmap.md](docs/roadmap/sota-fam
 [⭐ Star this repo](https://github.com/SylphxAI/image-reader-mcp) if agents should read images with facts, not vision-model guesses.
 · [Quick start](#quick-start) · [See it work](#see-it-work) · [Why not vision LLM guess?](#why-not-vision-llm-guess)
 
-Part of **Sylphx Instruments** (company portfolio knowledge, docs only):
-[SylphxAI/instruments](https://github.com/SylphxAI/instruments).
+This repository is product SSOT. Sibling agent tools live in separate repos.
 Each instrument is an independent repository (marketplace + stars).
 
 </div>
