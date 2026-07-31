@@ -13,6 +13,8 @@ describe('image reader release gate', () => {
     expect(report.summary.failed).toBe(0);
     expect(report.checks.some((check) => check.id === 'safety:byte_limit')).toBe(true);
     expect(report.checks.some((check) => check.id === 'examples:metadata_request')).toBe(true);
-    expect(report.checks.some((check) => check.id === 'contract:reader_evidence_dep')).toBe(true);
+    expect(report.checks.some((check) => check.id === 'contract:product_local_evidence')).toBe(
+      true
+    );
   }, 300_000);
 });
