@@ -1,6 +1,6 @@
 {
   "profile": "image_reader_release_gate",
-  "generated_at": "2026-07-09T21:39:30.326Z",
+  "generated_at": "2026-07-31T17:16:47.253Z",
   "artifact_dir": "/home/codex/src/github.com/SylphxAI/image-reader-mcp/benchmark-artifacts",
   "status": "passed",
   "summary": {
@@ -18,6 +18,39 @@
       }
     },
     {
+      "id": "package:iris_brand_bin",
+      "status": "passed",
+      "message": "package.json exposes brand bin iris",
+      "evidence": {
+        "bin": "./bin/image-reader-mcp"
+      }
+    },
+    {
+      "id": "package:sdk_export",
+      "status": "passed",
+      "message": "package.json exports SDK surface (./sdk or ./iris)",
+      "evidence": {
+        "exports": {
+          ".": "./dist/doctor-cli.js",
+          "./sdk": "./src/sdk.ts",
+          "./iris": "./src/sdk.ts"
+        }
+      }
+    },
+    {
+      "id": "marketplace:server_json_title_iris",
+      "status": "passed",
+      "message": "server.json marketplace title is Iris",
+      "evidence": {
+        "title": "Iris"
+      }
+    },
+    {
+      "id": "sdk:iris_source",
+      "status": "passed",
+      "message": "Iris SDK source is present at src/sdk.ts"
+    },
+    {
       "id": "safety:byte_limit",
       "status": "passed",
       "message": "32 MiB file byte safety limit is configured",
@@ -29,11 +62,6 @@
       "id": "rust:decode_core",
       "status": "passed",
       "message": "Rust image-reader-core decode engine is present"
-    },
-    {
-      "id": "rust:crop_region_core",
-      "status": "passed",
-      "message": "Rust image-reader-core exposes crop_region for region evidence"
     },
     {
       "id": "safety:pixel_limit",
@@ -64,44 +92,11 @@
       "message": "examples/sample-agent-media-twin.json documents the Agent Media Twin response shape"
     },
     {
-      "id": "boundary:crop_region",
-      "status": "passed",
-      "message": "crop_region returns citeable region evidence from the Rust CLI",
-      "evidence": {
-        "route": "rust-crop",
-        "width": 8,
-        "height": 4
-      }
-    },
-    {
-      "id": "mcp:rust_adapter_default",
-      "status": "passed",
-      "message": "Default npm bin launches the Rust rmcp MCP server; TypeScript adapter is opt-in only"
-    },
-    {
-      "id": "mcp:rust_web_http_transport",
-      "status": "passed",
-      "message": "Rust rmcp streamable HTTP Web MCP transport is wired; npm bin routes MCP_TRANSPORT=http to Rust"
-    },
-    {
-      "id": "boundary:rust_cli_engine",
-      "status": "passed",
-      "message": "Shipped-path matrix test proves primary tools route through Rust core without legacy runtime",
-      "evidence": {
-        "exitCode": 0
-      }
-    },
-    {
-      "id": "rust:mcp_server_crate",
-      "status": "passed",
-      "message": "image-reader-mcp-server rmcp crate builds for release"
-    },
-    {
       "id": "doctor:sharp",
       "status": "passed",
       "message": "doctor reports sharp decode pipeline is available",
       "evidence": {
-        "doctorStatus": "ready"
+        "doctorStatus": "degraded"
       }
     },
     {
@@ -116,6 +111,16 @@
       "evidence": {
         "dependency": "github:SylphxAI/reader-evidence"
       }
+    },
+    {
+      "id": "surface:agent_skill",
+      "status": "passed",
+      "message": "Agent skill surface is present at skills/iris/SKILL.md"
+    },
+    {
+      "id": "surface:public_proof_script",
+      "status": "passed",
+      "message": "Public proof script is present"
     }
   ]
 }

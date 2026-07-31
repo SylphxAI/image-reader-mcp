@@ -175,6 +175,20 @@ export async function buildReleaseGateReport(artifactDir: string): Promise<Relea
     { dependency: pkg.dependencies?.['@sylphx/reader-evidence'] }
   );
 
+  addCheck(
+    checks,
+    'surface:agent_skill',
+    fileExists('skills/iris/SKILL.md'),
+    'Agent skill surface is present at skills/iris/SKILL.md'
+  );
+
+  addCheck(
+    checks,
+    'surface:public_proof_script',
+    fileExists('scripts/public-proof.ts'),
+    'Public proof script is present'
+  );
+
   const passed = checks.filter((check) => check.status === 'passed').length;
   const failed = checks.length - passed;
 

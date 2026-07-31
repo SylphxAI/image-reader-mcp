@@ -63,7 +63,8 @@
     "start": "./bin/image-reader-mcp",
     "clean": "rm -rf dist coverage",
     "prepublishOnly": "bun run clean && bun run build && bun run build:rust",
-    "release": "bun run typecheck && bun run check && bun run build && bun test && changeset publish"
+    "release": "bun run typecheck && bun run check && bun run build && bun test && changeset publish",
+    "benchmark:public-proof": "bun scripts/public-proof.ts"
   },
   "dependencies": {
     "@sylphx/reader-evidence": "github:SylphxAI/reader-evidence",
