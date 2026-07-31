@@ -1,8 +1,8 @@
 {
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
   "name": "io.github.SylphxAI/image-reader-mcp",
-  "title": "Image Reader MCP",
-  "description": "Evidence-first image MCP. Agent Media Twin with metadata and citeable OCR evidence.",
+  "title": "Iris",
+  "description": "Iris \u2014 local-first image evidence for agents (metadata, OCR boxes, crops). SDK \u00b7 CLI \u00b7 MCP. Sylphx Instruments product.",
   "repository": {
     "url": "https://github.com/SylphxAI/image-reader-mcp",
     "source": "github"
