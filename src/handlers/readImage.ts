@@ -197,7 +197,9 @@ export const readImage = tool()
           line_count: ocr.line_count,
           dropped_low_confidence: ocr.dropped_low_confidence,
           ...(ocr.skipped_reason !== undefined ? { skipped_reason: ocr.skipped_reason } : {}),
-          ...(ocr.languages_warning !== undefined ? { languages_warning: ocr.languages_warning } : {}),
+          ...(ocr.languages_warning !== undefined
+            ? { languages_warning: ocr.languages_warning }
+            : {}),
           ...(ocr.words !== undefined ? { words: ocr.words } : {}),
         };
       }

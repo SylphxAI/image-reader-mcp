@@ -85,7 +85,7 @@ export const agentMediaTwinSchema = z.object({
             text: z.string(),
             bbox: boundingBoxSchema,
             confidence: z.number().min(0).max(100).optional(),
-          }),
+          })
         )
         .optional(),
     })

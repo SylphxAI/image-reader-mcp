@@ -31,7 +31,7 @@ export interface ParseTesseractOptions {
 /** Pure TSV parser — offline-testable evidence path for OCR bbox lines. */
 export const parseTesseractTsv = (
   raw: string,
-  options: ParseTesseractOptions = {},
+  options: ParseTesseractOptions = {}
 ): { lines: OcrLine[]; words: OcrWord[]; dropped_low_confidence: number } => {
   const minConfidence = options.minConfidence ?? 0;
   const includeWords = options.includeWords ?? false;
@@ -142,13 +142,10 @@ export const parseTesseractTsv = (
 
   return {
     lines: ocrLines.sort((a, b) => a.bbox.y - b.bbox.y || a.bbox.x - b.bbox.x),
-    words: includeWords
-      ? flatWords.sort((a, b) => a.bbox.y - b.bbox.y || a.bbox.x - b.bbox.x)
-      : [],
+    words: includeWords ? flatWords.sort((a, b) => a.bbox.y - b.bbox.y || a.bbox.x - b.bbox.x) : [],
     dropped_low_confidence: dropped,
   };
 };
-
 
 export const isTesseractAvailable = (): boolean => {
   const result = spawnSync('tesseract', ['--version'], {
@@ -160,7 +157,11 @@ export const isTesseractAvailable = (): boolean => {
 };
 
 /** List installed Tesseract traineddata languages (honest empty when unavailable). */
-export const listTesseractLanguages = (): { available: boolean; languages: string[]; warning?: string } => {
+export const listTesseractLanguages = (): {
+  available: boolean;
+  languages: string[];
+  warning?: string;
+} => {
   if (!isTesseractAvailable()) {
     return {
       available: false,
@@ -185,10 +186,11 @@ export const listTesseractLanguages = (): { available: boolean; languages: strin
   const languages = out
     .split(/\r?\n/)
     .map((l) => l.trim())
-    .filter((l) => l && !l.toLowerCase().includes('list of available languages') && !l.startsWith('Error'));
+    .filter(
+      (l) => l && !l.toLowerCase().includes('list of available languages') && !l.startsWith('Error')
+    );
   return { available: true, languages };
 };
-
 
 export type RunOcrOptions = {
   languages?: string[];
@@ -198,7 +200,7 @@ export type RunOcrOptions = {
 
 export const runTesseractOcr = (
   imagePath: string,
-  languagesOrOptions: string[] | RunOcrOptions = ['eng'],
+  languagesOrOptions: string[] | RunOcrOptions = ['eng']
 ): OcrResult => {
   const options: RunOcrOptions = Array.isArray(languagesOrOptions)
     ? { languages: languagesOrOptions }
@@ -221,7 +223,7 @@ export const runTesseractOcr = (
 
   const installed = listTesseractLanguages();
   const missingLangs = languages.filter(
-    (lang) => installed.available && !installed.languages.includes(lang),
+    (lang) => installed.available && !installed.languages.includes(lang)
   );
 
   const languageArg = languages.join('+');

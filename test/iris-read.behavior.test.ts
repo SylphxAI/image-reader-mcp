@@ -13,7 +13,7 @@ describe('Iris read behavior', () => {
       result && typeof result === 'object' && 'content' in result
         ? // MCP shaped
           (result as { content?: { type: string; text?: string }[] }).content?.find(
-            (c) => c.type === 'text',
+            (c) => c.type === 'text'
           )?.text
         : typeof result === 'object' && result !== null && 'type' in result
           ? (result as { text?: string }).text

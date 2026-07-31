@@ -33,9 +33,7 @@ const probeTesseract = (): DoctorCheck => {
   if (result.status === 0) {
     const versionLine = (result.stdout || result.stderr || '').split('\n')[0]?.trim();
     const langs = listTesseractLanguages();
-    const langNote = langs.available
-      ? ` languages=[${langs.languages.join(',') || 'none'}]`
-      : '';
+    const langNote = langs.available ? ` languages=[${langs.languages.join(',') || 'none'}]` : '';
     return {
       id: 'tesseract',
       status: 'ok',
