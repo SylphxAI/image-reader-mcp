@@ -22,7 +22,7 @@ let ocr: unknown = null;
 let ocrError: string | undefined;
 if (tesseract) {
   try {
-    ocr = await Iris.create().read({ path: sample, ocr: true } as { path: string; ocr: boolean });
+    ocr = await Iris.create().read({ path: sample, include_ocr: true } as { path: string; include_ocr: boolean });
   } catch (e) {
     ocrError = e instanceof Error ? e.message : String(e);
   }
