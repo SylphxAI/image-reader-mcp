@@ -1,9 +1,12 @@
 {
   "product": "Iris",
   "sample": "/home/codex/src/github.com/SylphxAI/image-reader-mcp/test/fixtures/sample.png",
-  "ms": 11.189477999999994,
+  "ms": 12.932511000000005,
   "ok": true,
   "bytes": 379,
+  "tesseractAvailable": false,
+  "ocrAttempted": false,
+  "ocrOk": null,
   "hasSkill": true,
-  "generatedAt": "2026-07-31T17:16:28.638Z"
+  "generatedAt": "2026-07-31T17:22:27.184Z"
 }

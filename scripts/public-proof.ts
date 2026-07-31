@@ -2,6 +2,7 @@
 import { mkdirSync, writeFileSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { Iris } from '../src/sdk.ts';
+import { isTesseractAvailable } from '../src/utils/ocr.ts';
 
 const root = join(import.meta.dir, '..');
 const sample = join(root, 'test/fixtures/sample.png');
@@ -15,23 +16,34 @@ if (!existsSync(sample)) {
 }
 
 const started = performance.now();
-const result = await Iris.create().read({ path: sample });
+const base = await Iris.create().read({ path: sample });
+const tesseract = isTesseractAvailable();
+let ocr: unknown = null;
+let ocrError: string | undefined;
+if (tesseract) {
+  try {
+    ocr = await Iris.create().read({ path: sample, ocr: true } as { path: string; ocr: boolean });
+  } catch (e) {
+    ocrError = e instanceof Error ? e.message : String(e);
+  }
+}
 const ms = performance.now() - started;
 
-// result is MCP content-ish; keep honest shape
 const text =
-  Array.isArray(result)
-    ? result.map((b: { text?: string }) => b.text ?? '').join('\n')
-    : typeof result === 'object' && result && 'content' in (result as object)
-      ? JSON.stringify(result)
-      : JSON.stringify(result);
+  Array.isArray(base)
+    ? base.map((b: { text?: string }) => b.text ?? '').join('\n')
+    : JSON.stringify(base);
 
 const report = {
   product: 'Iris',
   sample,
   ms,
-  ok: text.length > 0 || result != null,
+  ok: text.length > 0 || base != null,
   bytes: text.length,
+  tesseractAvailable: tesseract,
+  ocrAttempted: tesseract,
+  ocrOk: tesseract ? ocr != null && !ocrError : null,
+  ocrError,
   hasSkill: existsSync(join(root, 'skills/iris/SKILL.md')),
   generatedAt: new Date().toISOString(),
 };
