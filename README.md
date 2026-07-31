@@ -1,6 +1,10 @@
 <div align="center">
 
-# 🖼️ Image Reader MCP
+# Iris
+
+### Image evidence for agents *(Sylphx Instruments)*
+
+**Iris** (transitional package `@sylphx/image-reader-mcp`) — local-first image facts, not default VLM guesses.
 
 <p align="center">
   <img src="https://mark.sylphx.com/api/v1/banner?type=holo&theme=tokyonight&text=image+reader+mcp&desc=Evidence-first+image+reading+for+AI+agents+%E2%80%94+metadata%2C+OCR+text%2C+regions%2C+and+ci&height=200&animation=rise&credit=0" alt="image-reader-mcp — Sylphx Mark banner" width="100%" />
