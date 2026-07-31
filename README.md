@@ -36,6 +36,13 @@ Each instrument is an independent repository (marketplace + stars).
 ---
 
 
+
+## Read images (not vague vision)
+
+Iris is **local-first**: geometry + OCR + **layout blocks** + **agent_map** so a text-only agent can understand picture architecture without a vision model.
+
+Spec: [docs/specs/agent-image-read-contract.md](docs/specs/agent-image-read-contract.md)
+
 ## Product docs
 
 | Doc | Purpose |
