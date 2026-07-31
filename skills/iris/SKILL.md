@@ -47,3 +47,16 @@ Results include regions, warnings, provenance. There is **no** `evidence_first` 
 OCR is honest when tesseract is absent (surface unavailable; do not invent text).
 
 Family: https://github.com/SylphxAI/instruments
+
+## Multi-language OCR residual
+
+Iris accepts `ocr_languages` (Tesseract codes) and reports `languages_warning` when a requested pack is missing (`tesseract --list-langs`).
+
+Install extra packs on the host, for example:
+
+```bash
+# Debian/Ubuntu examples — package names vary by distro
+sudo apt-get install -y tesseract-ocr-eng tesseract-ocr-chi-sim tesseract-ocr-jpn
+```
+
+Until CI ships multi-traineddata corpora, multi-lang depth is **host-dependent honesty**, not a false "full multi-lang OCR suite" claim.
