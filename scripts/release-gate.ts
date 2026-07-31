@@ -54,7 +54,7 @@ const readJson = (relativePath: string): unknown =>
 
 export async function buildReleaseGateReport(artifactDir: string): Promise<ReleaseGateReport> {
   const checks: GateCheck[] = [];
-  const pkg = readJson('package.json') as { version: string; bin?: Record<string, string> };
+  const pkg = readJson('package.json') as { version: string; bin?: Record<string, string>; dependencies?: Record<string, string>; exports?: Record<string, unknown> };
 
   addCheck(
     checks,
@@ -62,6 +62,40 @@ export async function buildReleaseGateReport(artifactDir: string): Promise<Relea
     typeof pkg.bin?.['image-reader-mcp'] === 'string',
     'package.json exposes the image-reader-mcp bin entry',
     { bin: pkg.bin?.['image-reader-mcp'] }
+  );
+
+  addCheck(
+    checks,
+    'package:iris_brand_bin',
+    typeof pkg.bin?.iris === 'string',
+    'package.json exposes brand bin iris',
+    { bin: pkg.bin?.iris }
+  );
+
+  addCheck(
+    checks,
+    'package:sdk_export',
+    Boolean(pkg.exports && (pkg.exports['./sdk'] || pkg.exports['./iris'])),
+    'package.json exports SDK surface (./sdk or ./iris)',
+    { exports: pkg.exports }
+  );
+
+  const serverJson = fileExists('server.json')
+    ? (readJson('server.json') as { title?: string })
+    : null;
+  addCheck(
+    checks,
+    'marketplace:server_json_title_iris',
+    serverJson?.title === 'Iris',
+    'server.json marketplace title is Iris',
+    { title: serverJson?.title }
+  );
+
+  addCheck(
+    checks,
+    'sdk:iris_source',
+    fileExists('src/sdk.ts'),
+    'Iris SDK source is present at src/sdk.ts'
   );
 
   addCheck(
