@@ -1,17 +1,30 @@
 {
   "name": "@sylphx/image-reader-mcp-linux-x64-gnu",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "Iris (image-reader-mcp) native MCP server binary for linux-x64-gnu",
-  "os": ["linux"],
-  "cpu": ["x64"],
-  "libc": ["glibc"],
-  "files": ["image-reader-mcp-server"],
+  "os": [
+    "linux"
+  ],
+  "cpu": [
+    "x64"
+  ],
+  "libc": [
+    "glibc"
+  ],
+  "files": [
+    "image-reader-mcp-server"
+  ],
   "license": "MIT",
-  "publishConfig": { "access": "public", "registry": "https://registry.npmjs.org" },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org"
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/SylphxAI/image-reader-mcp.git",
     "directory": "packages/npm/linux-x64-gnu"
   },
-  "engines": { "node": ">=22.13.0" }
+  "engines": {
+    "node": ">=22.13.0"
+  }
 }
