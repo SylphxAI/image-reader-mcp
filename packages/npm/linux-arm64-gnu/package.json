@@ -1,6 +1,6 @@
 {
   "name": "@sylphx/image-reader-mcp-linux-arm64-gnu",
-  "version": "0.1.7",
+  "version": "0.1.8",
   "description": "Iris (image-reader-mcp) native MCP server binary for linux-arm64-gnu",
   "os": [
     "linux"
