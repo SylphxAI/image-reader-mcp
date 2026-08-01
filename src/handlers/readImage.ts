@@ -44,9 +44,16 @@ const readMetadata = async (
   }
 
   try {
-    let exifr: any;
+    let exifr: {
+      parse: (
+        path: string,
+        opts: Record<string, unknown>
+      ) => Promise<Record<string, unknown> | null>;
+    };
     try {
-      exifr = (await import('exifr')).default ?? (await import('exifr'));
+      exifr =
+        ((await import('exifr')) as { default?: typeof exifr }).default ??
+        ((await import('exifr')) as unknown as typeof exifr);
     } catch {
       return {
         trustWarnings: [
@@ -148,13 +155,26 @@ export const readImage = tool()
           twin.metadata = extractedMetadata;
         }
       } else {
-        let sharp: any;
+        type SharpMeta = {
+          width?: number;
+          height?: number;
+          format?: string;
+          orientation?: number;
+          space?: string;
+          hasAlpha?: boolean;
+        };
+        type SharpFn = (
+          path: string,
+          opts?: { failOn?: string }
+        ) => { metadata: () => Promise<SharpMeta> };
+        let sharp: SharpFn;
         try {
-          sharp = (await import('sharp')).default ?? (await import('sharp'));
+          const mod = await import('sharp');
+          sharp = (mod as { default?: SharpFn }).default ?? (mod as unknown as SharpFn);
         } catch {
           throw new ImageError(
             ErrorCode.InvalidRequest,
-            'Rust decode engine is unavailable and optional `sharp` is not installed. Build/stage image-reader-cli or install sharp for the TS fallback.',
+            'Rust decode engine is unavailable and optional `sharp` is not installed. Build/stage image-reader-cli or install sharp for the TS fallback.'
           );
         }
         const image = sharp(resolvedPath, { failOn: 'none' });

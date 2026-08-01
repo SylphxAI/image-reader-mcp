@@ -52,9 +52,10 @@ const probeTesseract = (): DoctorCheck => {
 
 const probeSharp = async (): Promise<DoctorCheck> => {
   try {
-    let sharpMod: any;
+    let sharpMod: unknown;
     try {
-      sharpMod = (await import('sharp')).default ?? (await import('sharp'));
+      sharpMod =
+        ((await import('sharp')) as { default?: unknown }).default ?? (await import('sharp'));
     } catch {
       return {
         id: 'sharp',
@@ -62,7 +63,15 @@ const probeSharp = async (): Promise<DoctorCheck> => {
         message: 'sharp not installed (optional). Rust decode path is preferred for MCP.',
       };
     }
-    const sharp = sharpMod;
+    const sharp = sharpMod as {
+      (
+        input: unknown,
+        opts?: unknown
+      ): {
+        png: () => { toBuffer: () => Promise<Buffer> };
+      };
+      versions?: { sharp?: string };
+    };
     const buffer = await sharp({
       create: {
         width: 1,
@@ -85,7 +94,7 @@ const probeSharp = async (): Promise<DoctorCheck> => {
     return {
       id: 'sharp',
       status: 'ok',
-      message: `sharp decode pipeline is available (v${(sharp.versions?.sharp ?? "unknown")}).`,
+      message: `sharp decode pipeline is available (v${sharp.versions?.sharp ?? 'unknown'}).`,
     };
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : String(error);
