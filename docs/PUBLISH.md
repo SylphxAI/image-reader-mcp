@@ -2,19 +2,15 @@
 
 | Field | Value |
 | --- | --- |
-| Transitional npm | `@sylphx/image-reader-mcp` |
-| Brand npm | `@sylphx/iris` |
-| Version | `0.1.2` |
-| Registry | **live** (dual expand–contract where brand ≠ transitional) |
-| Auth | GitHub org `NPM_TOKEN` via publish workflows |
+| Transitional npm | `@sylphx/image-reader-mcp@0.1.5` |
+| Brand npm | `@sylphx/iris@0.1.5` |
+| Platform native (linux-x64) | `@sylphx/image-reader-mcp-linux-x64-gnu@0.1.5` |
+| Registry | **live** |
 
 ## Install
 
 ```bash
-# preferred brand
-npm i -g @sylphx/iris
-# transitional still valid during expand
-npm i -g @sylphx/image-reader-mcp
+npx -y @sylphx/iris
+# or
+npx -y @sylphx/image-reader-mcp
 ```
-
-Workflows: `publish-npm-package.yml`, `publish-brand-alias.yml`.
