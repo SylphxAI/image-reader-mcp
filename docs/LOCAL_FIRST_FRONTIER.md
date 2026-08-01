@@ -2,42 +2,57 @@
 
 ## Principles (hard)
 
-1. **Less dependency** — no heavy npm ML stacks; system binaries + Rust only when present  
-2. **Zero config** — `npm i` + path works; no API key required  
-3. **Local first, cloud optional** — default offline; cloud only if user sets URL  
-4. **Speed / size / performance** — probe path is cheap; OCR opt-in; VLM opt-in  
-5. **Rust first** — decode/crop via Rust when staged; TS sharp is fallback  
+1. **Less dependency** — no npm ML wheels; system binaries + Rust natives  
+2. **Zero config** — path-only read works without API keys  
+3. **Local first, cloud optional** — OCR local; VLM only if user opts in  
+4. **Speed / size / performance** — cheap probe; OCR opt-in  
+5. **Rust first** — decode/crop/MCP via native when staged  
+6. **Simple but powerful** — lead with `read_image`
 
-## Extraction stack (priority)
+## What is true today (evidence)
 
-| Layer | Default | Optional |
+| Layer | Status | Evidence |
 | --- | --- | --- |
-| Geometry / crop | **Rust** (`image-reader-cli`) | sharp fallback |
-| OCR + layout | **Tesseract** on PATH (PSM3 TSV, native blocks) | — |
-| Agent map | always available (pure TS) | — |
-| VLM caption | off | local **Ollama** vision, or `IRIS_OPTIONAL_LLM_URL` (cloud ok) |
+| MCP launcher | Rust-first fail-closed | `bin/image-reader-mcp` → staged native server |
+| Package size | **~9.7 MB unpacked** | almost entirely `bin/native/image-reader-mcp-server` |
+| npm hard deps | **Not gold yet** | `@modelcontextprotocol/sdk`, `sharp`, `exifr`, `zod` still in package.json |
+| OCR | Local optional | Tesseract on PATH (not npm wheel) |
+| VLM | Optional | Ollama local or `IRIS_OPTIONAL_LLM_URL` — non-authority |
+
+## Target architecture
+
+```
+Agent ──MCP──► iris native ──► decode/crop (Rust)
+                    │
+                    ├─ OCR: tesseract on PATH (opt-in)
+                    └─ VLM caption: opt-in only (Ollama/cloud URL)
+```
+
+### Non-negotiable targets
+
+1. Drop **sharp** from the default install once Rust decode covers probe/crop (sharp = optional fallback package only).  
+2. Prefer **Citra packaging**: thin meta package + platform optionalDependencies, not one fat multi-host native in every tarball if avoidable.  
+3. Keep **3 tools max** public: `read_image`, `image_probe`, `crop_region`.  
+4. Never require a cloud vision model for “success”.  
+5. Evidence = bbox + path + route + warnings — not generative rewrite as authority.
+
+## Peer anchors
+
+| Peer class | Gap we exploit |
+| --- | --- |
+| Cloud vision MCP (Grok/OpenAI image) | Needs keys; non-deterministic; weak citeable geometry |
+| Tesseract-only OCR MCP | Text dump without layout/agent_map/crops |
+| Local CLIP gallery search | Retrieval gallery ≠ citeable OCR/regions |
 
 ## Zero-config usage
 
 ```bash
-npm i -g @sylphx/iris   # or @sylphx/image-reader-mcp
-# install tesseract on OS for OCR (optional binary, not an npm dep)
-read_image { "path": "/abs/a.png", "include_ocr": true }
+npx -y @sylphx/iris
+# read_image { "path": "/abs/a.png", "include_ocr": true }  # needs tesseract for OCR text
 ```
 
-Optional frontier caption (still non-authority):
+## Honest residual (as of 2026-08-01)
 
-```bash
-# local
-ollama pull llava
-# then include_optional_llm: true  (auto-discovers 127.0.0.1:11434)
-
-# cloud optional
-export IRIS_OPTIONAL_LLM_URL=https://your-endpoint
-```
-
-## Not in default path (keeps size/speed)
-
-- No Paddle/npm OCR wheels  
-- No browser  
-- No required VLM download  
+- Native MCP path is real.  
+- **sharp + TS MCP SDK deps still contradict “less dependency”** until demoted.  
+- Packaging still ships a full native binary inside the brand tarball (~9MB).
