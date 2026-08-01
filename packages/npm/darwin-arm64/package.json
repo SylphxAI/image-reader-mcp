@@ -1,0 +1,17 @@
+{
+  "name": "@sylphx/image-reader-mcp-darwin-arm64",
+  "version": "0.1.4",
+  "description": "Iris (image-reader-mcp) native MCP server binary for darwin-arm64",
+  "os": ["darwin"],
+  "cpu": ["arm64"],
+  
+  "files": ["image-reader-mcp-server"],
+  "license": "MIT",
+  "publishConfig": { "access": "public", "registry": "https://registry.npmjs.org" },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/SylphxAI/image-reader-mcp.git",
+    "directory": "packages/npm/darwin-arm64"
+  },
+  "engines": { "node": ">=22.13.0" }
+}

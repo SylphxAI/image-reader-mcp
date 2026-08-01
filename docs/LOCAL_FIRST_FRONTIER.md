@@ -56,4 +56,4 @@ npx -y @sylphx/iris
 - Native MCP path is fail-closed Rust (primary).  
 - **`sharp` + `exifr` demoted to optionalDependencies** (2026-08-01); Rust decode does not need them.  
 - Remaining hard deps for doctor/TS SDK helpers: `@modelcontextprotocol/sdk`, `zod`.  
-- Packaging still ships a full native binary in the brand tarball (~9MB) — Citra-style multi-arch optionalDeps is P2.
+- **Citra-style multi-arch optionalDependencies** for natives (`@sylphx/image-reader-mcp-<platform>`); main package no longer embeds `bin/native` in published files.

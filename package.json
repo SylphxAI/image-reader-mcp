@@ -9,7 +9,7 @@
     "iris": "./bin/image-reader-mcp"
   },
   "files": [
-    "bin/",
+    "bin/image-reader-mcp",
     "dist/",
     "README.md",
     "LICENSE",
@@ -83,6 +83,10 @@
   "private": false,
   "optionalDependencies": {
     "sharp": "^0.34.3",
-    "exifr": "^7.1.3"
+    "exifr": "^7.1.3",
+    "@sylphx/image-reader-mcp-darwin-arm64": "0.1.4",
+    "@sylphx/image-reader-mcp-darwin-x64": "0.1.4",
+    "@sylphx/image-reader-mcp-linux-x64-gnu": "0.1.4",
+    "@sylphx/image-reader-mcp-linux-arm64-gnu": "0.1.4"
   }
 }

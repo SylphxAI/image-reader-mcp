@@ -4,7 +4,7 @@
 
 ### Image evidence for agents 
 
-**Iris** (transitional package `@sylphx/image-reader-mcp`) — local-first image facts, not default VLM guesses.
+**Iris** (transitional package `@sylphx/image-reader-mcp`) — **Rust-first** local image facts, not default VLM guesses. `sharp`/`exifr` are optional, not required for MCP.
 
 <p align="center">
   <img src="https://mark.sylphx.com/api/v1/banner?type=holo&theme=tokyonight&text=image+reader+mcp&desc=Evidence-first+image+reading+for+AI+agents+%E2%80%94+metadata%2C+OCR+text%2C+regions%2C+and+ci&height=200&animation=rise&credit=0" alt="image-reader-mcp — Sylphx Mark banner" width="100%" />
@@ -78,7 +78,7 @@ an image, not a creative caption.**
 | Paraphrased OCR | Optional Tesseract lines with bounding boxes and confidence |
 | GPS and EXIF leak into context | GPS redacted; trust warnings for suspicious metadata |
 | No provenance | Agent Media Twin JSON with measurable, citeable fields |
-| Cloud API by default | **Local-first** — sharp + exifr on your machine |
+| Cloud API by default | **Local-first** — Rust decode + optional Tesseract OCR; sharp/exifr only optional fallbacks |
 | Ship and pray | **23** unit tests on schema, metadata, OCR hooks, safety limits, doctor, and release gate |
 
 ## See it work
@@ -141,7 +141,7 @@ Abbreviated shape — optional OCR skips gracefully when Tesseract is not instal
 | --- | --- |
 | `read_image` | Read a local image and return dimensions, mime, metadata, optional OCR, and trust warnings. |
 
-Supported formats: PNG, JPEG, GIF, WebP, TIFF, and other formats sharp can decode.
+Supported formats: PNG, JPEG, GIF, WebP, TIFF, and other formats the **Rust decode engine** supports (optional sharp covers additional formats when installed).
 
 ## Quick Start
 
