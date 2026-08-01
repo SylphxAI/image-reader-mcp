@@ -202,6 +202,7 @@ export const readImage = tool()
             ? { languages_warning: ocr.languages_warning }
             : {}),
           ...(ocr.words !== undefined ? { words: ocr.words } : {}),
+          ...(ocr.native_blocks !== undefined ? { native_blocks: ocr.native_blocks } : {}),
         };
       }
 

@@ -1,6 +1,6 @@
 import type { AgentMediaTwin, ReadImageArgs } from '../schemas/readImage.js';
 import { buildAgentImageMap } from './agentMap.js';
-import { buildLayoutFromOcrLines } from './layout.js';
+import { buildBestEffortLayout } from './layout.js';
 import { maybeOptionalImageCaption } from './optionalLlm.js';
 import { samplePalette } from './palette.js';
 
@@ -18,14 +18,30 @@ export async function applyImageIntelligence(
 
   const includeLayout = input.include_layout ?? includeOcr;
   if (includeLayout && next.ocr?.lines && next.ocr.lines.length > 0) {
-    const layout = buildLayoutFromOcrLines(
-      next.ocr.lines.map((line) => ({
+    const ocrAny = next.ocr as {
+      lines: Array<{
+        text: string;
+        bbox: { x: number; y: number; width: number; height: number };
+        confidence?: number;
+      }>;
+      native_blocks?: Array<{
+        id: string;
+        kind: 'block' | 'paragraph';
+        text: string;
+        bbox: { x: number; y: number; width: number; height: number };
+        confidence?: number;
+      }>;
+    };
+    const layout = buildBestEffortLayout({
+      lines: ocrAny.lines.map((line) => ({
         text: line.text,
         bbox: line.bbox,
         ...(line.confidence !== undefined ? { confidence: line.confidence } : {}),
-      }))
-    );
+      })),
+      ...(ocrAny.native_blocks ? { nativeBlocks: ocrAny.native_blocks } : {}),
+    });
     next.layout = layout;
+    next.trust_warnings.push(`layout_policy: ${layout.policy}`);
     for (const warning of layout.warnings) {
       next.trust_warnings.push(`layout: ${warning}`);
     }

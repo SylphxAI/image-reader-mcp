@@ -79,7 +79,7 @@ export const readImageArgsSchema = z.object({
     .boolean()
     .optional()
     .describe(
-      'Optional caption via IRIS_OPTIONAL_LLM_URL. Off by default; never authority over OCR/layout evidence.'
+      'Optional local frontier caption via Ollama vision models or IRIS_OPTIONAL_LLM_URL. Off by default; never authority over OCR/layout evidence.'
     ),
 });
 
@@ -107,6 +107,17 @@ export const agentMediaTwinSchema = z.object({
             text: z.string(),
             bbox: boundingBoxSchema,
             confidence: z.number().min(0).max(100).optional(),
+          })
+        )
+        .optional(),
+      native_blocks: z
+        .array(
+          z.object({
+            id: z.string(),
+            kind: z.enum(['block', 'paragraph']),
+            text: z.string(),
+            bbox: boundingBoxSchema,
+            confidence: z.number().optional(),
           })
         )
         .optional(),
@@ -157,6 +168,7 @@ export const agentMediaTwinSchema = z.object({
           skipped_reason: z.string().optional(),
           route: z.string().optional(),
           caption: z.string().optional(),
+          model: z.string().optional(),
         })
         .optional(),
     })

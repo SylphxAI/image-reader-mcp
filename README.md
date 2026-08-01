@@ -43,6 +43,8 @@ Iris is **local-first**: geometry + OCR + **layout blocks** + **agent_map** so a
 
 Spec: [docs/specs/agent-image-read-contract.md](docs/specs/agent-image-read-contract.md)
 
+**Local-first frontier:** Rust decode, Tesseract native layout (no npm ML), optional Ollama VLM; cloud URL optional. Zero API key.
+
 ## Product docs
 
 | Doc | Purpose |

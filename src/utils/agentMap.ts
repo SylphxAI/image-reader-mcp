@@ -20,6 +20,7 @@ export type AgentImageMap = {
     skipped_reason?: string;
     route?: string;
     caption?: string;
+    model?: string;
   };
 };
 

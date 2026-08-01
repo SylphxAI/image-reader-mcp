@@ -1,5 +1,5 @@
 /**
- * Deterministic layout structure from OCR line boxes (no generative model).
+ * Local-first layout: prefer Tesseract native block/paragraph units; fall back to line clustering.
  */
 
 export type BBox = { x: number; y: number; width: number; height: number };
@@ -17,6 +17,7 @@ export type LayoutBlock = {
   bbox: BBox;
   line_count: number;
   reading_order: number;
+  source?: 'tesseract_native' | 'line_cluster';
 };
 
 export type ImageLayout = {
@@ -25,6 +26,14 @@ export type ImageLayout = {
   blocks: LayoutBlock[];
   full_text: string;
   warnings: string[];
+};
+
+export type NativeBlockInput = {
+  id: string;
+  kind: 'block' | 'paragraph';
+  text: string;
+  bbox: BBox;
+  confidence?: number;
 };
 
 const unionBBox = (boxes: BBox[]): BBox => {
@@ -50,7 +59,7 @@ const shouldMerge = (prev: LayoutLine, next: LayoutLine, yGap: number, xSlop: nu
   return verticalClose && horizontalOverlap;
 };
 
-const toBlock = (lines: LayoutLine[], index: number): LayoutBlock => {
+const toClusterBlock = (lines: LayoutLine[], index: number): LayoutBlock => {
   const ordered = [...lines].sort((a, b) => a.bbox.y - b.bbox.y || a.bbox.x - b.bbox.x);
   const text = ordered
     .map((l) => l.text.trim())
@@ -63,8 +72,34 @@ const toBlock = (lines: LayoutLine[], index: number): LayoutBlock => {
     bbox: unionBBox(ordered.map((l) => l.bbox)),
     line_count: ordered.length,
     reading_order: index + 1,
+    source: 'line_cluster',
   };
 };
+
+export function buildLayoutFromNativeBlocks(native: NativeBlockInput[]): ImageLayout {
+  const usable = native
+    .filter((b) => b.text.trim().length > 0 && b.bbox.width > 0 && b.bbox.height > 0)
+    .sort((a, b) => a.bbox.y - b.bbox.y || a.bbox.x - b.bbox.x);
+  const blocks: LayoutBlock[] = usable.map((b, index) => ({
+    id: b.id || `native-${index + 1}`,
+    kind: 'text_block',
+    text: b.text.trim(),
+    bbox: b.bbox,
+    line_count: Math.max(1, b.text.split(/\n/).length),
+    reading_order: index + 1,
+    source: 'tesseract_native',
+  }));
+  return {
+    policy: 'tesseract_native_layout_v1',
+    block_count: blocks.length,
+    blocks,
+    full_text: blocks.map((b) => b.text).join('\n\n'),
+    warnings:
+      blocks.length === 0
+        ? ['Native Tesseract blocks present but empty text; falling back recommended.']
+        : [],
+  };
+}
 
 export function buildLayoutFromOcrLines(lines: LayoutLine[]): ImageLayout {
   if (lines.length === 0) {
@@ -96,7 +131,7 @@ export function buildLayoutFromOcrLines(lines: LayoutLine[]): ImageLayout {
     }
   }
 
-  const blocks = clusters.map((cluster, index) => toBlock(cluster, index));
+  const blocks = clusters.map((cluster, index) => toClusterBlock(cluster, index));
   const warnings: string[] = [];
   if (blocks.length === 1 && lines.length > 8) {
     warnings.push(
@@ -111,4 +146,16 @@ export function buildLayoutFromOcrLines(lines: LayoutLine[]): ImageLayout {
     full_text: blocks.map((b) => b.text).join('\n\n'),
     warnings,
   };
+}
+
+/** Local-first frontier layout: native Tesseract structure first, heuristic second. */
+export function buildBestEffortLayout(input: {
+  lines: LayoutLine[];
+  nativeBlocks?: NativeBlockInput[];
+}): ImageLayout {
+  if (input.nativeBlocks?.some((b) => b.text.trim().length > 0)) {
+    const native = buildLayoutFromNativeBlocks(input.nativeBlocks);
+    if (native.block_count > 0) return native;
+  }
+  return buildLayoutFromOcrLines(input.lines);
 }
