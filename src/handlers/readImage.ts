@@ -1,7 +1,5 @@
 import fs, { stat } from 'node:fs/promises';
 import path from 'node:path';
-import exifr from 'exifr';
-import sharp from 'sharp';
 import {
   cropRegionViaRustEngine,
   probeImageViaRustEngine,
@@ -46,6 +44,16 @@ const readMetadata = async (
   }
 
   try {
+    let exifr: any;
+    try {
+      exifr = (await import('exifr')).default ?? (await import('exifr'));
+    } catch {
+      return {
+        trustWarnings: [
+          'Optional dependency `exifr` is not installed; EXIF/XMP/IPTC metadata skipped (geometry/OCR still available).',
+        ],
+      };
+    }
     const parsed = await exifr.parse(filePath, {
       tiff: true,
       xmp: true,
@@ -140,6 +148,15 @@ export const readImage = tool()
           twin.metadata = extractedMetadata;
         }
       } else {
+        let sharp: any;
+        try {
+          sharp = (await import('sharp')).default ?? (await import('sharp'));
+        } catch {
+          throw new ImageError(
+            ErrorCode.InvalidRequest,
+            'Rust decode engine is unavailable and optional `sharp` is not installed. Build/stage image-reader-cli or install sharp for the TS fallback.',
+          );
+        }
         const image = sharp(resolvedPath, { failOn: 'none' });
         const metadata = await image.metadata();
         validateImageSafety({

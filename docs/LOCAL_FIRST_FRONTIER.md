@@ -15,7 +15,7 @@
 | --- | --- | --- |
 | MCP launcher | Rust-first fail-closed | `bin/image-reader-mcp` → staged native server |
 | Package size | **~9.7 MB unpacked** | almost entirely `bin/native/image-reader-mcp-server` |
-| npm hard deps | **Not gold yet** | `@modelcontextprotocol/sdk`, `sharp`, `exifr`, `zod` still in package.json |
+| npm hard deps | **Improved** | hard: `@modelcontextprotocol/sdk`, `zod` for doctor/SDK; `sharp`/`exifr` **optional** |
 | OCR | Local optional | Tesseract on PATH (not npm wheel) |
 | VLM | Optional | Ollama local or `IRIS_OPTIONAL_LLM_URL` — non-authority |
 
@@ -51,8 +51,9 @@ npx -y @sylphx/iris
 # read_image { "path": "/abs/a.png", "include_ocr": true }  # needs tesseract for OCR text
 ```
 
-## Honest residual (as of 2026-08-01)
+## Progress / residual
 
-- Native MCP path is real.  
-- **sharp + TS MCP SDK deps still contradict “less dependency”** until demoted.  
-- Packaging still ships a full native binary inside the brand tarball (~9MB).
+- Native MCP path is fail-closed Rust (primary).  
+- **`sharp` + `exifr` demoted to optionalDependencies** (2026-08-01); Rust decode does not need them.  
+- Remaining hard deps for doctor/TS SDK helpers: `@modelcontextprotocol/sdk`, `zod`.  
+- Packaging still ships a full native binary in the brand tarball (~9MB) — Citra-style multi-arch optionalDeps is P2.

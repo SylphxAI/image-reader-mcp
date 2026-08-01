@@ -2,7 +2,6 @@ import { spawnSync } from 'node:child_process';
 import { existsSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import sharp from 'sharp';
 import { resolveRustCliBinary } from './engine/rust-decode.js';
 import { listTesseractLanguages } from './utils/ocr.js';
 import { IMAGE_SAFETY_LIMITS } from './utils/safety.js';
@@ -53,6 +52,17 @@ const probeTesseract = (): DoctorCheck => {
 
 const probeSharp = async (): Promise<DoctorCheck> => {
   try {
+    let sharpMod: any;
+    try {
+      sharpMod = (await import('sharp')).default ?? (await import('sharp'));
+    } catch {
+      return {
+        id: 'sharp',
+        status: 'warn',
+        message: 'sharp not installed (optional). Rust decode path is preferred for MCP.',
+      };
+    }
+    const sharp = sharpMod;
     const buffer = await sharp({
       create: {
         width: 1,
@@ -75,7 +85,7 @@ const probeSharp = async (): Promise<DoctorCheck> => {
     return {
       id: 'sharp',
       status: 'ok',
-      message: `sharp decode pipeline is available (v${sharp.versions.sharp}).`,
+      message: `sharp decode pipeline is available (v${(sharp.versions?.sharp ?? "unknown")}).`,
     };
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : String(error);
@@ -162,7 +172,7 @@ const probeRustDecodeFlag = (): DoctorCheck => {
     id: 'rust_decode_flag',
     status: 'warn',
     message:
-      'Rust decode CLI is not built. sharp remains the default probe path until `cargo build --release`.',
+      'Rust decode CLI is not built. Install/stage image-reader-cli for native decode, or optional `sharp` for TS fallback.',
   };
 };
 

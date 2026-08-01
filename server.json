@@ -2,18 +2,18 @@
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
   "name": "io.github.SylphxAI/image-reader-mcp",
   "title": "Iris",
-  "description": "Iris \u2014 local-first image evidence for agents (metadata, OCR boxes, crops). SDK \u00b7 CLI \u00b7 MCP. by Sylphx.",
+  "description": "Iris — local-first image evidence for agents (metadata, OCR boxes, crops). SDK · CLI · MCP. by Sylphx.",
   "repository": {
     "url": "https://github.com/SylphxAI/image-reader-mcp",
     "source": "github"
   },
-  "version": "0.1.3",
+  "version": "0.1.4",
   "websiteUrl": "https://github.com/SylphxAI/image-reader-mcp#readme",
   "packages": [
     {
       "registryType": "npm",
       "identifier": "@sylphx/image-reader-mcp",
-      "version": "0.1.3",
+      "version": "0.1.4",
       "transport": {
         "type": "stdio"
       }

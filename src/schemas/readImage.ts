@@ -74,7 +74,7 @@ export const readImageArgsSchema = z.object({
   include_palette: z
     .boolean()
     .optional()
-    .describe('Sample an approximate local color palette via sharp (not ML). Defaults to false.'),
+    .describe('Sample an approximate local color palette via optional sharp when installed (not ML). Defaults to false.'),
   include_optional_llm: z
     .boolean()
     .optional()
