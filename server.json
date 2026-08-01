@@ -7,13 +7,13 @@
     "url": "https://github.com/SylphxAI/image-reader-mcp",
     "source": "github"
   },
-  "version": "0.1.5",
+  "version": "0.1.6",
   "websiteUrl": "https://github.com/SylphxAI/image-reader-mcp#readme",
   "packages": [
     {
       "registryType": "npm",
       "identifier": "@sylphx/image-reader-mcp",
-      "version": "0.1.5",
+      "version": "0.1.6",
       "transport": {
         "type": "stdio"
       }

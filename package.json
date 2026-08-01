@@ -1,6 +1,6 @@
 {
   "name": "@sylphx/image-reader-mcp",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "mcpName": "io.github.SylphxAI/image-reader-mcp",
   "description": "Iris — Evidence-first image reading for AI agents — metadata, OCR text, regions, and citeable evidence without generative LLM.",
   "type": "module",
@@ -84,9 +84,9 @@
   "optionalDependencies": {
     "sharp": "^0.34.3",
     "exifr": "^7.1.3",
-    "@sylphx/image-reader-mcp-darwin-arm64": "0.1.5",
-    "@sylphx/image-reader-mcp-darwin-x64": "0.1.5",
-    "@sylphx/image-reader-mcp-linux-x64-gnu": "0.1.5",
-    "@sylphx/image-reader-mcp-linux-arm64-gnu": "0.1.5"
+    "@sylphx/image-reader-mcp-darwin-arm64": "0.1.6",
+    "@sylphx/image-reader-mcp-darwin-x64": "0.1.6",
+    "@sylphx/image-reader-mcp-linux-x64-gnu": "0.1.6",
+    "@sylphx/image-reader-mcp-linux-arm64-gnu": "0.1.6"
   }
 }
