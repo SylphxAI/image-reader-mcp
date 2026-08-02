@@ -37,6 +37,16 @@ Each instrument is an independent repository (marketplace + stars).
 
 
 
+## See objects (L2, optional)
+
+With a local Florence-class sidecar or Ollama, the same `read_image` can return **open-vocab objects** with pixel bboxes and scores:
+
+```json
+{ "path": "/abs/photo.jpg", "include_semantics": true, "semantics_prompt": "people and animals" }
+```
+
+Objects are `scored_non_locator` evidence — deterministic L0/L1 facts (geometry/OCR/layout) stay authoritative and always on.
+
 ## Read images (not vague vision)
 
 Iris is **local-first**: geometry + OCR + **layout blocks** + **agent_map** so a text-only agent can understand picture architecture without a vision model.
