@@ -15,24 +15,16 @@ Iris itself stays **zero-config and lightweight**: L2 is opt-in
 (`include_semantics: true`). The optional local semantics engine lives here so
 the main npm package never bundles multi-GB weights.
 
-## Quick start (requires Python + a local model)
+## Quick start (installable package)
 
 ```bash
-pip install -r requirements.txt        # fastapi, uvicorn, transformers, torch
-python -m src.app --model microsoft/Florence-2-large   # or your local HF path
+# from this directory (or a git ref / PyPI once published):
+pip install .                      # installs iris-florence-sidecar
+pip install ".[model]"             # + transformers for local Florence inference
+iris-sidecar                        # serves on http://127.0.0.1:8765 (IRIS_SIDECAR_HOST/PORT/MODEL env)
 ```
 
-In your agent config:
-
-```json
-{ "IRIS_SEMANTICS_URL": "http://127.0.0.1:8765" }
-```
-
-Then (see Iris read contract):
-
-```json
-{ "path": "/abs/photo.jpg", "include_semantics": true, "semantics_prompt": "people and animals" }
-```
+Dev (no install): `pip install -r requirements.txt` then `python -m src.app`.
 
 ## Contract
 

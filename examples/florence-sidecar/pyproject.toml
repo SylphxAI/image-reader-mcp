@@ -1,0 +1,31 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "iris-florence-sidecar"
+version = "0.1.0"
+description = "Iris L2 local semantics sidecar (Florence-class) implementing the IRIS_SEMANTICS_URL contract."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+dependencies = [
+  "fastapi>=0.110",
+  "uvicorn>=0.29",
+  "pillow>=10",
+  # optional inference stack (user installs when running with a model):
+  # transformers, torch
+]
+
+[project.optional-dependencies]
+model = ["transformers>=4.40"]
+dev = ["pytest"]
+
+[project.scripts]
+iris-sidecar = "florence_sidecar.__main__:serve"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+florence_sidecar = ["py.typed"]
