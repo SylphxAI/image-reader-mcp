@@ -1,41 +1,22 @@
-/**
- * Text-only Agent Map: lets a non-vision model "read" the image architecture.
- * Deterministic, local-first. Optional LLM captions are layered elsewhere.
- */
+import type { AgentMediaTwin } from '../schemas/readImage.js';
+import type { SemanticsResult } from './optionalSemantics.js';
 
-import type { ImageLayout } from './layout.js';
-
-export type AgentImageMap = {
-  policy: 'agent_image_map_v1';
-  filename: string;
-  mime: string;
-  dimensions: { width: number; height: number };
-  /** Human/agent readable outline (markdown-ish, not prose hallucination). */
-  outline: string;
-  text_present: boolean;
-  block_count: number;
-  palette?: Array<{ hex: string; approx_share: number }>;
-  optional_llm?: {
-    available: boolean;
-    skipped_reason?: string;
-    route?: string;
-    caption?: string;
-    model?: string;
-  };
-};
+export type AgentImageMap = NonNullable<AgentMediaTwin['agent_map']>;
 
 export function buildAgentImageMap(input: {
   filename: string;
   mime: string;
   dimensions: { width: number; height: number };
-  layout?: ImageLayout;
+  layout?: AgentMediaTwin['layout'];
   ocrLineCount?: number;
   palette?: Array<{ hex: string; approx_share: number }>;
   optionalLlm?: AgentImageMap['optional_llm'];
+  semantics?: SemanticsResult | undefined;
 }): AgentImageMap {
   const { width, height } = input.dimensions;
   const blocks = input.layout?.blocks ?? [];
   const textPresent = (input.ocrLineCount ?? 0) > 0 || blocks.length > 0;
+  const objects = input.semantics?.available ? (input.semantics.objects ?? []) : [];
 
   const lines: string[] = [
     `# Image map: ${input.filename}`,
@@ -43,6 +24,7 @@ export function buildAgentImageMap(input: {
     `- size: ${width}×${height}px`,
     `- text_present: ${textPresent}`,
     `- layout_blocks: ${blocks.length}`,
+    `- semantics_objects: ${objects.length}`,
   ];
 
   if (input.palette && input.palette.length > 0) {
@@ -62,13 +44,30 @@ export function buildAgentImageMap(input: {
         ''
       );
     }
-  } else if (!textPresent) {
+  } else if (!textPresent && objects.length === 0) {
     lines.push(
       '',
       '## Notes',
       '- No OCR text recovered. Enable include_ocr for text architecture.',
-      '- Use crop_region / image_probe for geometry; optional LLM caption only if configured.'
+      '- Enable include_semantics for local open-vocab objects (IRIS_SEMANTICS_URL or Ollama).',
+      '- Use crop_region / image_probe for geometry.'
     );
+  }
+
+  if (objects.length > 0) {
+    lines.push('', '## L2 semantics objects (scored, non-locator authority)');
+    for (const obj of objects.slice(0, 24)) {
+      const box = obj.bbox
+        ? `bbox x=${obj.bbox.x} y=${obj.bbox.y} w=${obj.bbox.width} h=${obj.bbox.height}`
+        : 'bbox: n/a';
+      const score = obj.score !== undefined ? ` score=${obj.score.toFixed(2)}` : '';
+      lines.push(`- ${obj.id}: ${obj.label}${score}; ${box}`);
+    }
+    if (input.semantics?.caption) {
+      lines.push('', '## L2 caption (scored_non_locator)', input.semantics.caption);
+    }
+  } else if (input.semantics && !input.semantics.available) {
+    lines.push('', `## L2 semantics: skipped (${input.semantics.skipped_reason ?? 'unavailable'})`);
   }
 
   if (input.optionalLlm?.available && input.optionalLlm.caption) {

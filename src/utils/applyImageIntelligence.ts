@@ -2,9 +2,10 @@ import type { AgentMediaTwin, ReadImageArgs } from '../schemas/readImage.js';
 import { buildAgentImageMap } from './agentMap.js';
 import { buildBestEffortLayout } from './layout.js';
 import { maybeOptionalImageCaption } from './optionalLlm.js';
+import { maybeImageSemantics } from './optionalSemantics.js';
 import { samplePalette } from './palette.js';
 
-/** Attach layout, palette, optional LLM, and agent_map to an Agent Media Twin. */
+/** Attach layout, palette, optional LLM/semantics, and agent_map to an Agent Media Twin. */
 export async function applyImageIntelligence(
   twin: AgentMediaTwin,
   resolvedPath: string,
@@ -67,6 +68,28 @@ export async function applyImageIntelligence(
     );
   }
 
+  const semantics = await maybeImageSemantics({
+    path: resolvedPath,
+    mime: next.mime,
+    width: next.dimensions.width,
+    height: next.dimensions.height,
+    include: input.include_semantics,
+    prompt: input.semantics_prompt,
+  });
+  if (semantics) {
+    next.semantics = semantics;
+    if (semantics.available) {
+      next.trust_warnings.push(
+        `semantics L2 via ${semantics.route ?? 'unknown'} is scored_non_locator; never overrides OCR/layout.`
+      );
+      if (semantics.object_count) {
+        next.trust_warnings.push(`semantics_objects: ${semantics.object_count}`);
+      }
+    } else if (semantics.skipped_reason) {
+      next.trust_warnings.push(`semantics_skipped: ${semantics.skipped_reason}`);
+    }
+  }
+
   const includeAgentMap = input.include_agent_map ?? true;
   if (includeAgentMap) {
     next.agent_map = buildAgentImageMap({
@@ -77,6 +100,7 @@ export async function applyImageIntelligence(
       ocrLineCount: next.ocr?.line_count ?? next.ocr?.lines?.length ?? 0,
       ...(palette ? { palette } : {}),
       optionalLlm,
+      ...(semantics ? { semantics } : {}),
     });
   }
 

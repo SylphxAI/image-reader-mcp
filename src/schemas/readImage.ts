@@ -83,6 +83,17 @@ export const readImageArgsSchema = z.object({
     .describe(
       'Optional local frontier caption via Ollama vision models or IRIS_OPTIONAL_LLM_URL. Off by default; never authority over OCR/layout evidence.'
     ),
+  include_semantics: z
+    .union([z.boolean(), z.literal('auto')])
+    .optional()
+    .describe(
+      'L2 local semantics: open-vocab objects + optional caption via IRIS_SEMANTICS_URL (Florence/DINO/SAM adapter) or Ollama structured vision. Default false (zero-config). Never authority over OCR/layout locators.'
+    ),
+  semantics_prompt: z
+    .string()
+    .max(500)
+    .optional()
+    .describe('Optional focus prompt for L2 semantics (e.g. "animals", "UI widgets").'),
 });
 
 export const agentMediaTwinSchema = z.object({
@@ -173,6 +184,30 @@ export const agentMediaTwinSchema = z.object({
           model: z.string().optional(),
         })
         .optional(),
+    })
+    .optional(),
+  semantics: z
+    .object({
+      available: z.boolean(),
+      authority: z.literal('scored_non_locator'),
+      skipped_reason: z.string().optional(),
+      route: z.string().optional(),
+      model: z.string().optional(),
+      caption: z.string().optional(),
+      object_count: z.number().int().nonnegative().optional(),
+      objects: z
+        .array(
+          z.object({
+            id: z.string(),
+            label: z.string(),
+            category: z.string().optional(),
+            bbox: boundingBoxSchema.optional(),
+            score: z.number().min(0).max(1).optional(),
+            mask_ref: z.string().nullable().optional(),
+          })
+        )
+        .optional(),
+      warnings: z.array(z.string()).optional(),
     })
     .optional(),
   trust_warnings: z.array(z.string()),

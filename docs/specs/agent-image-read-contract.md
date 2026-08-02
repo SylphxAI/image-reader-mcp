@@ -34,6 +34,14 @@ Let agents **read** an image (architecture + text + locators), not merely dump p
 - Caption may enrich `agent_map` but **never** overrides OCR/layout locators  
 - Fail closed when unset
 
+## L2 Semantics (scored_non_locator)
+
+- `include_semantics`: `true` | `false` | `"auto"` (default **false**)  
+- Backends: `IRIS_SEMANTICS_URL` (Florence/Grounding-DINO/SAM adapter) → Ollama structured vision  
+- Output: `semantics.objects[]` with optional bbox/score + optional caption  
+- **Never** overrides OCR/layout locators; always carries route/model/warnings  
+- Spec: [local-semantics-l2.md](./local-semantics-l2.md) · ADR-20260802
+
 ## Tool surface (keep few)
 
 | Tool | Role |
@@ -46,4 +54,8 @@ Let agents **read** an image (architecture + text + locators), not merely dump p
 
 ```json
 { "path": "/abs/ui.png", "include_ocr": true, "include_layout": true, "include_agent_map": true }
+```
+
+```json
+{ "path": "/abs/photo.jpg", "include_semantics": true, "semantics_prompt": "people and animals" }
 ```

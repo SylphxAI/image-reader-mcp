@@ -90,7 +90,7 @@ const readMetadata = async (
 
 export const readImage = tool()
   .description(
-    'Evidence-first image reader for agents (read, not vague vision). Returns Agent Media Twin: geometry, metadata, OCR lines/words, layout blocks, text agent_map, optional palette, optional non-authority LLM caption. Local-first; generative path off by default.'
+    'Evidence-first image reader for agents (read, not vague vision). Returns Agent Media Twin: geometry, metadata, OCR lines/words, layout blocks, text agent_map, optional palette, optional non-authority LLM caption, optional L2 semantics (objects). Local-first; generative path off by default.'
   )
   .input(readImageArgsSchema)
   .handler(async ({ input }) => {
