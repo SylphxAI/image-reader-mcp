@@ -1,6 +1,6 @@
 {
   "name": "@sylphx/image-reader-mcp-darwin-x64",
-  "version": "0.1.8",
+  "version": "0.1.9",
   "description": "Iris (image-reader-mcp) native MCP server binary for darwin-x64",
   "os": [
     "darwin"
