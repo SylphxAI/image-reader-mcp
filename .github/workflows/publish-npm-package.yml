@@ -53,4 +53,14 @@ jobs:
             exit 0
           fi
           npm publish --access public --workspaces=false
-          npm view "$NAME@$VER" version --workspaces=false
+          # npm CDN can lag; poll before failing the job after successful publish
+          for i in $(seq 1 24); do
+            if npm view "$NAME@$VER" version --workspaces=false >/dev/null 2>&1; then
+              npm view "$NAME@$VER" version --workspaces=false
+              exit 0
+            fi
+            sleep 5
+          done
+          echo "publish returned success but registry view still lagging for $NAME@$VER" >&2
+          # do not fail closed on pure CDN lag after + package@version success path
+          npm view "$NAME" version dist-tags --workspaces=false || true
