@@ -1,0 +1,5 @@
+# Optional local semantics engine (not shipped in the Iris npm package)
+fastapi>=0.110
+uvicorn>=0.29
+transformers>=4.40
+pillow>=10

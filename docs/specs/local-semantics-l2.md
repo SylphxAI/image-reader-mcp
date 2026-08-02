@@ -65,6 +65,13 @@ Response JSON:
 | `IRIS_OLLAMA_URL` / `OLLAMA_HOST` | Fallback structured VLM |
 | `IRIS_OLLAMA_VISION_MODEL` | Force model name |
 
+## Official sidecar
+
+A reference adapter lives at [`examples/florence-sidecar/`](../../examples/florence-sidecar/README.md).
+It implements this exact contract with a local Florence-2 class model so
+`read_image { include_semantics: true }` returns open-vocab objects with pixel
+bboxes, fully offline. Model weights are **not** bundled into the Iris package.
+
 ## Agent usage
 
 ```json
