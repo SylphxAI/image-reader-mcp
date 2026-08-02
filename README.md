@@ -43,7 +43,7 @@ Iris is **local-first**: geometry + OCR + **layout blocks** + **agent_map** so a
 
 Spec: [docs/specs/agent-image-read-contract.md](docs/specs/agent-image-read-contract.md)
 
-**Local-first frontier:** Rust decode, Tesseract native layout (no npm ML), optional Ollama VLM; cloud URL optional. Zero API key.
+**Local-first frontier:** Rust decode, Tesseract native layout (no npm ML), optional Ollama VLM; cloud URL optional. Zero API key. Optional **L2 local semantics** (include_semantics) detects open-vocab objects (people/animals/things) with pixel bboxes via an official Florence-class sidecar (examples/florence-sidecar/) or Ollama -- never authority over OCR/layout locators.
 
 ## Product docs
 
