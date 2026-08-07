@@ -23,7 +23,7 @@ impl FreeformToolArgs {
     }
 }
 
-pub const SERVER_NAME: &str = "image-reader-mcp";
+pub const SERVER_NAME: &str = "iris";
 pub const SERVER_VERSION: &str = "0.1.0";
 pub const SERVER_INSTRUCTIONS: &str =
     "Evidence-first image reader MCP server (Rust rmcp transport). Use read_image for Agent Media Twin metadata, optional region evidence, and trust warnings without generative LLM.";
@@ -62,7 +62,7 @@ impl ServerHandler for ImageReaderMcp {
             .with_server_info(
                 Implementation::new(SERVER_NAME, SERVER_VERSION)
                     .with_description(
-                        "Rust-native MCP server for image-reader-mcp (modelcontextprotocol/rust-sdk rmcp)",
+                        "Rust-native MCP server for Iris (@sylphx/iris) (modelcontextprotocol/rust-sdk rmcp)",
                     )
                     .with_website_url("https://github.com/SylphxAI/image-reader-mcp"),
             )
