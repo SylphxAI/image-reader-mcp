@@ -6,7 +6,7 @@ use serde_json::Value;
 use crate::{AgentMediaTwin, DECODE_ROUTE, ENGINE_NAME, READ_IMAGE_ROUTE};
 
 pub const READER_EVIDENCE_CONTRACT_VERSION: &str = "reader-evidence-v1";
-pub const PACKAGE_NAME: &str = "@sylphx/image-reader-mcp";
+pub const PACKAGE_NAME: &str = "@sylphx/iris";
 pub const TOOL_NAME: &str = "read_image";
 pub const READER_CONTRACT_VERSION: &str = "0.1.0";
 

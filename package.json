@@ -1,12 +1,12 @@
 {
-  "name": "@sylphx/image-reader-mcp",
-  "version": "0.1.9",
-  "mcpName": "io.github.SylphxAI/image-reader-mcp",
-  "description": "Iris \u2014 Evidence-first image reading for AI agents \u2014 metadata, OCR text, regions, and citeable evidence without generative LLM.",
+  "name": "@sylphx/iris",
+  "version": "0.2.0",
+  "mcpName": "io.github.SylphxAI/iris",
+  "description": "Iris — evidence-first image reading for AI agents. Metadata, OCR text, regions, citeable evidence. Local-first. No generative LLM authority.",
   "type": "module",
   "bin": {
-    "image-reader-mcp": "./bin/image-reader-mcp",
-    "iris": "./bin/image-reader-mcp"
+    "iris": "./bin/image-reader-mcp",
+    "image-reader-mcp": "./bin/image-reader-mcp"
   },
   "files": [
     "bin/image-reader-mcp",
@@ -17,8 +17,7 @@
   ],
   "exports": {
     ".": "./dist/doctor-cli.js",
-    "./sdk": "./src/sdk.ts",
-    "./iris": "./src/sdk.ts"
+    "./sdk": "./src/sdk.ts"
   },
   "publishConfig": {
     "access": "public"
@@ -84,9 +83,9 @@
   "optionalDependencies": {
     "sharp": "^0.35.0",
     "exifr": "^7.1.3",
-    "@sylphx/image-reader-mcp-darwin-arm64": "0.1.9",
-    "@sylphx/image-reader-mcp-darwin-x64": "0.1.9",
-    "@sylphx/image-reader-mcp-linux-x64-gnu": "0.1.9",
-    "@sylphx/image-reader-mcp-linux-arm64-gnu": "0.1.9"
+    "@sylphx/image-reader-mcp-darwin-arm64": "0.2.0",
+    "@sylphx/image-reader-mcp-darwin-x64": "0.2.0",
+    "@sylphx/image-reader-mcp-linux-x64-gnu": "0.2.0",
+    "@sylphx/image-reader-mcp-linux-arm64-gnu": "0.2.0"
   }
 }
