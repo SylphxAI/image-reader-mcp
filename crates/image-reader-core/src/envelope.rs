@@ -10,16 +10,33 @@ pub const PACKAGE_NAME: &str = "@sylphx/iris";
 pub const TOOL_NAME: &str = "read_image";
 pub const READER_CONTRACT_VERSION: &str = "0.1.0";
 
+#[derive(Debug, Clone, Serialize)]
+pub struct FamilyRoute {
+    pub engine: &'static str,
+    pub path: String,
+}
+
 #[allow(non_snake_case)]
 #[derive(Debug, Clone, Serialize)]
 pub struct AgentEvidenceEnvelope {
+    pub envelope_version: &'static str,
+    pub status: &'static str,
+    pub tool: &'static str,
+    pub product: &'static str,
+    pub product_version: &'static str,
+    /// Family route object (schema route.engine). Domain routing remains under `routing`.
+    #[serde(rename = "route")]
+    pub family_route: FamilyRoute,
+    #[serde(default)]
+    pub gaps: Vec<String>,
     pub subject: String,
     pub source: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub sourceHash: Option<String>,
     pub freshness: Freshness,
     pub locator: Locator,
-    pub route: RouteInfo,
+    #[serde(rename = "domainRoute")]
+    pub domain_route: RouteInfo,
     pub confidence: &'static str,
     pub warnings: Vec<String>,
     pub nextActions: Vec<String>,
@@ -83,6 +100,16 @@ pub fn build_read_image_envelope(input: EnvelopeInput<'_>) -> AgentEvidenceEnvel
         serde_json::to_value(&input.twin).unwrap_or_else(|_| Value::Object(Default::default()));
 
     AgentEvidenceEnvelope {
+        envelope_version: "1",
+        status: "ok",
+        tool: TOOL_NAME,
+        product: "iris",
+        product_version: env!("CARGO_PKG_VERSION"),
+        family_route: FamilyRoute {
+            engine: "rust-core",
+            path: READ_IMAGE_ROUTE.to_string(),
+        },
+        gaps: vec![],
         subject: source.clone(),
         source: source.clone(),
         sourceHash: input.source_hash,
@@ -94,7 +121,7 @@ pub fn build_read_image_envelope(input: EnvelopeInput<'_>) -> AgentEvidenceEnvel
             path: source,
             detectedFormat: input.detected_format,
         },
-        route: RouteInfo {
+        domain_route: RouteInfo {
             sniff: DECODE_ROUTE.to_string(),
             delegation: TOOL_NAME.to_string(),
         },

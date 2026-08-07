@@ -5,7 +5,7 @@ pub mod exif;
 pub mod metadata;
 pub mod read_image;
 
-pub use envelope::{build_read_image_envelope, AgentEvidenceEnvelope, EnvelopeInput};
+pub use envelope::{build_read_image_envelope, AgentEvidenceEnvelope, EnvelopeInput, FamilyRoute};
 pub use exif::{extract_exif_from_bytes, extract_exif_from_path, ExifExtract};
 pub use metadata::{collect_trust_warnings, redact_gps_fields, sanitize_metadata};
 pub use read_image::{
