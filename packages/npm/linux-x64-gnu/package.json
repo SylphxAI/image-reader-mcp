@@ -1,7 +1,7 @@
 {
-  "name": "@sylphx/image-reader-mcp-linux-x64-gnu",
-  "version": "0.1.9",
-  "description": "Iris (image-reader-mcp) native MCP server binary for linux-x64-gnu",
+  "name": "@sylphx/iris-linux-x64-gnu",
+  "version": "0.2.0",
+  "description": "Iris native MCP server binary for linux-x64-gnu",
   "os": [
     "linux"
   ],
@@ -12,7 +12,7 @@
     "glibc"
   ],
   "files": [
-    "image-reader-mcp-server"
+    "iris-mcp-server"
   ],
   "license": "MIT",
   "publishConfig": {

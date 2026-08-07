@@ -1,7 +1,7 @@
 {
-  "name": "@sylphx/image-reader-mcp-darwin-arm64",
-  "version": "0.1.9",
-  "description": "Iris (image-reader-mcp) native MCP server binary for darwin-arm64",
+  "name": "@sylphx/iris-darwin-arm64",
+  "version": "0.2.0",
+  "description": "Iris native MCP server binary for darwin-arm64",
   "os": [
     "darwin"
   ],
@@ -9,7 +9,7 @@
     "arm64"
   ],
   "files": [
-    "image-reader-mcp-server"
+    "iris-mcp-server"
   ],
   "license": "MIT",
   "publishConfig": {

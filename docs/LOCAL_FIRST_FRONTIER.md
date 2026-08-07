@@ -13,8 +13,8 @@
 
 | Layer | Status | Evidence |
 | --- | --- | --- |
-| MCP launcher | Rust-first fail-closed | `bin/image-reader-mcp` → staged native server |
-| Package size | **~9.7 MB unpacked** | almost entirely `bin/native/image-reader-mcp-server` |
+| MCP launcher | Rust-first fail-closed | `bin/iris` → staged native server |
+| Package size | **~9.7 MB unpacked** | almost entirely `bin/native/iris-mcp-server` |
 | npm hard deps | **Improved** | hard: `@modelcontextprotocol/sdk`, `zod` for doctor/SDK; `sharp`/`exifr` **optional** |
 | OCR | Local optional | Tesseract on PATH (not npm wheel) |
 | VLM | Optional | Ollama local or `IRIS_OPTIONAL_LLM_URL` — non-authority |
