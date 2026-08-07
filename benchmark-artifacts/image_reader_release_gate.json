@@ -1,6 +1,6 @@
 {
   "profile": "image_reader_release_gate",
-  "generated_at": "2026-08-02T02:35:24.549Z",
+  "generated_at": "2026-08-07T18:02:05.680Z",
   "artifact_dir": "/home/codex/src/github.com/SylphxAI/image-reader-mcp/benchmark-artifacts",
   "status": "passed",
   "summary": {
@@ -12,9 +12,11 @@
     {
       "id": "package:read_image_bin",
       "status": "passed",
-      "message": "package.json exposes the image-reader-mcp bin entry",
+      "message": "package.json exposes brand-only iris bin (no transitional image-reader-mcp bin)",
       "evidence": {
-        "bin": "./bin/iris"
+        "bin": {
+          "iris": "./bin/iris"
+        }
       }
     },
     {
@@ -32,8 +34,7 @@
       "evidence": {
         "exports": {
           ".": "./dist/doctor-cli.js",
-          "./sdk": "./src/sdk.ts",
-          "./iris": "./src/sdk.ts"
+          "./sdk": "./src/sdk.ts"
         }
       }
     },
@@ -96,7 +97,7 @@
       "status": "passed",
       "message": "doctor reports sharp decode pipeline is available",
       "evidence": {
-        "doctorStatus": "degraded"
+        "doctorStatus": "ready"
       }
     },
     {

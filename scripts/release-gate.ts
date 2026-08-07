@@ -59,9 +59,9 @@ export async function buildReleaseGateReport(artifactDir: string): Promise<Relea
   addCheck(
     checks,
     'package:read_image_bin',
-    typeof pkg.bin?.['image-reader-mcp'] === 'string',
-    'package.json exposes the image-reader-mcp bin entry',
-    { bin: pkg.bin?.['image-reader-mcp'] }
+    typeof pkg.bin?.iris === 'string' && !pkg.bin?.['image-reader-mcp'],
+    'package.json exposes brand-only iris bin (no transitional image-reader-mcp bin)',
+    { bin: pkg.bin }
   );
 
   addCheck(
@@ -75,7 +75,7 @@ export async function buildReleaseGateReport(artifactDir: string): Promise<Relea
   addCheck(
     checks,
     'package:sdk_export',
-    Boolean(pkg.exports && (pkg.exports['./sdk'] || pkg.exports['./iris'])),
+    Boolean(pkg.exports && pkg.exports['./sdk']),
     'package.json exports SDK surface (./sdk or ./iris)',
     { exports: pkg.exports }
   );
