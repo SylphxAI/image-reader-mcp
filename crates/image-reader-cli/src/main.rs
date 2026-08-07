@@ -22,10 +22,21 @@ struct ProbeSuccessEnvelope {
 
 #[derive(Debug, serde::Serialize)]
 struct ReadImageSuccessEnvelope {
+    // Family envelope v1 (also nested under `envelope` for domain depth).
+    envelope_version: &'static str,
+    product: &'static str,
+    product_version: &'static str,
     status: &'static str,
+    tool: &'static str,
+    #[serde(rename = "route")]
+    family_route: image_reader_core::FamilyRoute,
+    #[serde(default)]
+    gaps: Vec<String>,
     engine: &'static str,
     version: &'static str,
-    route: &'static str,
+    /// Legacy string route for domain consumers.
+    #[serde(rename = "domain_route")]
+    domain_route: &'static str,
     twin: image_reader_core::AgentMediaTwin,
     envelope: image_reader_core::AgentEvidenceEnvelope,
 }
@@ -221,10 +232,19 @@ fn main() {
     let output = match request.tool.as_str() {
         "read_image" => match image_reader_core::read_image_from_value(&request.input) {
             Ok(success) => serde_json::to_string(&ReadImageSuccessEnvelope {
+                envelope_version: "1",
+                product: "iris",
+                product_version: env!("CARGO_PKG_VERSION"),
                 status: "ok",
+                tool: "read_image",
+                family_route: image_reader_core::FamilyRoute {
+                    engine: "rust-core",
+                    path: READ_IMAGE_ROUTE.to_string(),
+                },
+                gaps: vec![],
                 engine: ENGINE_NAME,
                 version: ENGINE_VERSION,
-                route: READ_IMAGE_ROUTE,
+                domain_route: READ_IMAGE_ROUTE,
                 twin: success.twin,
                 envelope: success.envelope,
             })

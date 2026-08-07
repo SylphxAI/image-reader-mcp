@@ -24,7 +24,7 @@ impl FreeformToolArgs {
 }
 
 pub const SERVER_NAME: &str = "iris";
-pub const SERVER_VERSION: &str = "0.1.0";
+pub const SERVER_VERSION: &str = "0.2.0";
 pub const SERVER_INSTRUCTIONS: &str =
     "Evidence-first image reader MCP server (Rust rmcp transport). Use read_image for Agent Media Twin metadata, optional region evidence, and trust warnings without generative LLM.";
 
