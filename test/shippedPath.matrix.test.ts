@@ -91,7 +91,15 @@ describe('shipped path matrix (Rust core, no legacy flags)', () => {
       fakeNodeEnv
     );
     expect(envelope.status).toBe('ok');
-    expect(envelope.route).toBe('rust-read-image-v1');
+    // Family envelope v1 uses route.engine/path; domain_route keeps legacy string.
+    const routePath =
+      typeof envelope.route === 'string'
+        ? envelope.route
+        : (envelope.route as { path?: string } | undefined)?.path ??
+          (envelope as { domain_route?: string }).domain_route;
+    expect(routePath).toBe('rust-read-image-v1');
+    expect((envelope as { envelope_version?: string }).envelope_version).toBe('1');
+    expect((envelope as { product?: string }).product).toBe('iris');
     expect(envelope.twin?.mime).toBe('image/png');
     expect(envelope.envelope?.delegation?.delegated_tool).toBe('read_image');
     expect(envelope.envelope?.delegation?.reader_package).toBe('@sylphx/iris');
