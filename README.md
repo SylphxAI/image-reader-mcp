@@ -106,7 +106,6 @@ claude mcp add iris -- npx @sylphx/iris
 **Install once. Call once.**
 
 ```bash
-claude mcp add image-reader -- npx @sylphx/iris
 ```
 
 ```json
@@ -160,7 +159,6 @@ Supported formats: PNG, JPEG, GIF, WebP, TIFF, and other formats the **Rust deco
 ### Claude Code
 
 ```bash
-claude mcp add image-reader -- npx @sylphx/iris
 ```
 
 ### Claude Desktop
@@ -170,7 +168,7 @@ Add this to `claude_desktop_config.json`:
 ```json
 {
   "mcpServers": {
-    "image-reader": {
+    "iris": {
       "command": "npx",
       "args": ["@sylphx/iris"]
     }
