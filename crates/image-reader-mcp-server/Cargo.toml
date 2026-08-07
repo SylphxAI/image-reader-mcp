@@ -9,7 +9,7 @@ description = "Rust-native MCP server for image-reader-mcp (rmcp)"
 path = "src/lib.rs"
 
 [[bin]]
-name = "image-reader-mcp-server"
+name = "iris-mcp-server"
 path = "src/main.rs"
 
 [dependencies]

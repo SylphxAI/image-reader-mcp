@@ -2,9 +2,9 @@ import fs from 'node:fs';
 import path from 'node:path';
 
 const repoRoot = path.resolve(import.meta.dirname, '..');
-const source = path.join(repoRoot, 'target/release/image-reader-mcp-server');
+const source = path.join(repoRoot, 'target/release/iris-mcp-server');
 const targetDir = path.join(repoRoot, 'bin/native');
-const target = path.join(targetDir, 'image-reader-mcp-server');
+const target = path.join(targetDir, 'iris-mcp-server');
 
 if (!fs.existsSync(source)) {
   console.error(

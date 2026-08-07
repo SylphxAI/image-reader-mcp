@@ -14,7 +14,7 @@
       "status": "passed",
       "message": "package.json exposes the image-reader-mcp bin entry",
       "evidence": {
-        "bin": "./bin/image-reader-mcp"
+        "bin": "./bin/iris"
       }
     },
     {
@@ -22,7 +22,7 @@
       "status": "passed",
       "message": "package.json exposes brand bin iris",
       "evidence": {
-        "bin": "./bin/image-reader-mcp"
+        "bin": "./bin/iris"
       }
     },
     {
