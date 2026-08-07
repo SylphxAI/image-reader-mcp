@@ -1,6 +1,6 @@
 # Iris native packaging (Citra-style)
 
-Main package `@sylphx/image-reader-mcp` / brand `@sylphx/iris` is a **thin launcher**.
+Main package **`@sylphx/iris`** (deprecated transitional id `@sylphx/image-reader-mcp`) is a **thin launcher**.
 
 Natives ship as optionalDependencies:
 
