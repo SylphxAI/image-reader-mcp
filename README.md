@@ -2,9 +2,11 @@
 
 # Iris
 
-### Image evidence for agents 
+### Image evidence for agents
 
-**Iris** (transitional package `@sylphx/image-reader-mcp`) — **Rust-first** local image facts, not default VLM guesses. `sharp`/`exifr` are optional, not required for MCP.
+Canonical package: **`@sylphx/iris`** · bin **`iris`** 
+
+**Iris** — **Rust-first** local image facts (`@sylphx/iris`) local image facts, not default VLM guesses. `sharp`/`exifr` are optional, not required for MCP.
 
 <p align="center">
   <img src="https://mark.sylphx.com/api/v1/banner?type=holo&theme=tokyonight&text=image+reader+mcp&desc=Evidence-first+image+reading+for+AI+agents+%E2%80%94+metadata%2C+OCR+text%2C+regions%2C+and+ci&height=200&animation=rise&credit=0" alt="image-reader-mcp — Sylphx Mark banner" width="100%" />
@@ -16,7 +18,7 @@ Evidence-first image reading for AI agents. One call turns any local image into 
 **Agent Media Twin** — dimensions, metadata, optional OCR with bounding boxes, and
 trust warnings you can cite without asking a vision LLM to guess.
 
-[![npm version](https://img.shields.io/npm/v/@sylphx/image-reader-mcp?style=flat-square)](https://www.npmjs.com/package/@sylphx/image-reader-mcp)
+[![npm version](https://img.shields.io/npm/v/@sylphx/iris?style=flat-square)](https://www.npmjs.com/package/@sylphx/iris)
 [![License](https://img.shields.io/badge/License-MIT-blue?style=flat-square)](https://opensource.org/licenses/MIT)
 [![CI/CD](https://img.shields.io/github/actions/workflow/status/SylphxAI/image-reader-mcp/ci.yml?style=flat-square&label=CI/CD)](https://github.com/SylphxAI/image-reader-mcp/actions/workflows/ci.yml)
 [![TypeScript](https://img.shields.io/badge/TypeScript-7.0-blue.svg?style=flat-square)](https://www.typescriptlang.org/)
@@ -96,15 +98,15 @@ an image, not a creative caption.**
 ### Install (30 seconds)
 
 ```bash
-npm install -g @sylphx/image-reader-mcp
+npm install -g @sylphx/iris
 iris doctor
-claude mcp add iris -- npx @sylphx/image-reader-mcp
+claude mcp add iris -- npx @sylphx/iris
 ```
 
 **Install once. Call once.**
 
 ```bash
-claude mcp add image-reader -- npx @sylphx/image-reader-mcp
+claude mcp add image-reader -- npx @sylphx/iris
 ```
 
 ```json
@@ -158,7 +160,7 @@ Supported formats: PNG, JPEG, GIF, WebP, TIFF, and other formats the **Rust deco
 ### Claude Code
 
 ```bash
-claude mcp add image-reader -- npx @sylphx/image-reader-mcp
+claude mcp add image-reader -- npx @sylphx/iris
 ```
 
 ### Claude Desktop
@@ -170,7 +172,7 @@ Add this to `claude_desktop_config.json`:
   "mcpServers": {
     "image-reader": {
       "command": "npx",
-      "args": ["@sylphx/image-reader-mcp"]
+      "args": ["@sylphx/iris"]
     }
   }
 }
@@ -179,7 +181,7 @@ Add this to `claude_desktop_config.json`:
 ### Any MCP Client
 
 ```bash
-npx @sylphx/image-reader-mcp
+npx @sylphx/iris
 ```
 
 Node.js `>=22.13` is required. Optional OCR uses a local Tesseract adapter when
@@ -229,7 +231,7 @@ Example `read_image` requests live in [`examples/`](examples/).
 ## Support
 
 - [Issues](https://github.com/SylphxAI/image-reader-mcp/issues)
-- [npm package](https://www.npmjs.com/package/@sylphx/image-reader-mcp)
+- [npm package](https://www.npmjs.com/package/@sylphx/iris)
 - Portfolio orchestration: [smart-reader-mcp](https://github.com/SylphxAI/smart-reader-mcp)
 
 ## Help this reach more builders
