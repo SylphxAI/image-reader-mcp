@@ -94,7 +94,7 @@ describe('shipped path matrix (Rust core, no legacy flags)', () => {
     expect(envelope.route).toBe('rust-read-image-v1');
     expect(envelope.twin?.mime).toBe('image/png');
     expect(envelope.envelope?.delegation?.delegated_tool).toBe('read_image');
-    expect(envelope.envelope?.delegation?.reader_package).toBe('@sylphx/image-reader-mcp');
+    expect(envelope.envelope?.delegation?.reader_package).toBe('@sylphx/iris');
     expect(envelope.twin?.trust_warnings?.some((warning) => warning.includes('rust-probe'))).toBe(
       true
     );
