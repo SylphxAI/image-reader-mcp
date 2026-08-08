@@ -9,3 +9,11 @@
 ```bash
 npm i -g @sylphx/iris
 ```
+
+## Zero-config CTA
+
+```bash
+npx -y @sylphx/iris
+```
+
+Live **@sylphx/iris@0.2.1**. Bare MCP stdio for agents.
