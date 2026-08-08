@@ -9,6 +9,7 @@ npx -y @sylphx/iris
 ```
 
 Starts the MCP server on stdio (agents / Codex / Claude Desktop).
+**Live:** `@sylphx/iris@0.2.1` · brand-sole `serverInfo.name=iris` · portable linux natives.
 
 
 ### Image evidence for agents
@@ -18,14 +19,26 @@ Canonical package: **`@sylphx/iris`** · bin **`iris`**
 **Iris** — **Rust-first** local image facts (`@sylphx/iris`) local image facts, not default VLM guesses. `sharp`/`exifr` are optional, not required for MCP.
 
 <p align="center">
-  <img src="https://mark.sylphx.com/api/v1/banner?type=holo&theme=tokyonight&text=image+reader+mcp&desc=Evidence-first+image+reading+for+AI+agents+%E2%80%94+metadata%2C+OCR+text%2C+regions%2C+and+ci&height=200&animation=rise&credit=0" alt="image-reader-mcp — Sylphx Mark banner" width="100%" />
+  <img src="https://mark.sylphx.com/api/v1/banner?type=holo&theme=tokyonight&text=iris&desc=Evidence-first+image+reading+for+AI+agents+%E2%80%94+metadata%2C+OCR+text%2C+regions%2C+and+ci&height=200&animation=rise&credit=0" alt="Iris — Sylphx Mark banner" width="100%" />
 </p>
 
 ### Your agent looked at the image. **Did it see the truth?**
 
-Evidence-first image reading for AI agents. One call turns any local image into an
-**Agent Media Twin** — dimensions, metadata, optional OCR with bounding boxes, and
-trust warnings you can cite without asking a vision LLM to guess.
+**Iris** is local-first **image evidence** for agents — dimensions, metadata, regions, optional OCR with boxes — **without** a default vision-LLM hallucination loop.
+
+```bash
+npx -y @sylphx/iris
+```
+
+| | Vision model guess | **Iris** |
+| --- | --- | --- |
+| Reproducible facts | ❌ varies by model | ✅ deterministic media twin |
+| Bounding boxes / regions | rare | first-class evidence |
+| Cloud API required | often | **no** |
+| Setup | keys + SDKs | **zero-config npx** |
+| Brand | mixed | `@sylphx/iris` · bin `iris` · **0.2.1** |
+
+**Rust-first** MCP runtime. Missing native → fail closed.
 
 [![npm version](https://img.shields.io/npm/v/@sylphx/iris?style=flat-square)](https://www.npmjs.com/package/@sylphx/iris)
 [![License](https://img.shields.io/badge/License-MIT-blue?style=flat-square)](https://opensource.org/licenses/MIT)
@@ -104,7 +117,14 @@ an image, not a creative caption.**
 
 ## See it work
 
-### Install (30 seconds)
+### Why Iris wins for agents
+
+1. **Zero-config** — `npx -y @sylphx/iris` starts MCP on stdio.
+2. **Facts over captions** — structure agents can cite, not free-text “I see a chart”.
+3. **Local-first** — files never leave the machine by default.
+4. **Family** — pair with Citra (PDF), Cue (video), Locus (code).
+
+## Install (30 seconds)
 
 ```bash
 npm install -g @sylphx/iris

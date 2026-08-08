@@ -42,3 +42,9 @@ See [IPPB.md](./IPPB.md).
 
 Optional open-vocab objects + caption via local Florence/DINO/SAM adapters or Ollama,
 behind `include_semantics`. Default remains L0/L1 facts only (zero-config).
+
+## Zero-config
+
+```bash
+npx -y @sylphx/iris
+```
