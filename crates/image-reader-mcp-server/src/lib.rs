@@ -24,7 +24,7 @@ impl FreeformToolArgs {
 }
 
 pub const SERVER_NAME: &str = "iris";
-pub const SERVER_VERSION: &str = "0.2.0";
+pub const SERVER_VERSION: &str = "0.2.1";
 pub const SERVER_INSTRUCTIONS: &str =
     "Evidence-first image reader MCP server (Rust rmcp transport). Use read_image for Agent Media Twin metadata, optional region evidence, and trust warnings without generative LLM.";
 
@@ -78,5 +78,18 @@ mod tests {
         let tools = ImageReaderMcp::new().tool_router.list_all();
         let names: Vec<_> = tools.iter().map(|tool| tool.name.to_string()).collect();
         assert!(names.contains(&"read_image".to_string()));
+    }
+
+    #[test]
+    fn server_info_is_brand_sole_iris() {
+        use rmcp::ServerHandler;
+        use super::{SERVER_NAME, SERVER_VERSION};
+        let info = ImageReaderMcp::new().get_info();
+        let name = info.server_info.name.to_string();
+        let version = info.server_info.version.to_string();
+        assert_eq!(name, SERVER_NAME);
+        assert_eq!(version, SERVER_VERSION);
+        assert_eq!(SERVER_NAME, "iris");
+        assert!(!name.contains("image-reader"));
     }
 }

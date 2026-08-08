@@ -2,6 +2,15 @@
 
 # Iris
 
+## Zero-config (no install)
+
+```bash
+npx -y @sylphx/iris
+```
+
+Starts the MCP server on stdio (agents / Codex / Claude Desktop).
+
+
 ### Image evidence for agents
 
 Canonical package: **`@sylphx/iris`** · bin **`iris`** 
