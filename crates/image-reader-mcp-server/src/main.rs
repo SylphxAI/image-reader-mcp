@@ -5,7 +5,7 @@ use rmcp::ServiceExt;
 async fn main() -> anyhow::Result<()> {
     if std::env::args().nth(1).as_deref() == Some("doctor") {
         eprintln!(
-            "image-reader-mcp Rust MCP server {SERVER_VERSION} ({})",
+            "Iris Rust MCP server {SERVER_VERSION} ({})",
             image_reader_core::ENGINE_NAME
         );
         return Ok(());

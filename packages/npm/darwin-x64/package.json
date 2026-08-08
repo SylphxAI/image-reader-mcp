@@ -1,6 +1,6 @@
 {
   "name": "@sylphx/iris-darwin-x64",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Iris native MCP server binary for darwin-x64",
   "os": [
     "darwin"
