@@ -1,64 +1,81 @@
+<!-- Marketing: promise → CTA → comparison → why → demo → tools → docs -->
 <div align="center">
 
 # Iris
 
-## Zero-config (no install)
+### Image evidence for agents — not vision-model guesses.
 
-```bash
-npx -y @sylphx/iris
-```
+**Local-first image facts** your agent can cite: dimensions, metadata, regions, optional OCR with boxes.
 
-Starts the MCP server on stdio (agents / Codex / Claude Desktop).
-**Live:** `@sylphx/iris@0.2.1` · brand-sole `serverInfo.name=iris` · portable linux natives.
-
-
-### Image evidence for agents
-
-Canonical package: **`@sylphx/iris`** · bin **`iris`** 
-
-**Iris** — **Rust-first** local image facts (`@sylphx/iris`) local image facts, not default VLM guesses. `sharp`/`exifr` are optional, not required for MCP.
-
-<p align="center">
-  <img src="https://mark.sylphx.com/api/v1/banner?type=holo&theme=tokyonight&text=iris&desc=Evidence-first+image+reading+for+AI+agents+%E2%80%94+metadata%2C+OCR+text%2C+regions%2C+and+ci&height=200&animation=rise&credit=0" alt="Iris — Sylphx Mark banner" width="100%" />
-</p>
-
-### Your agent looked at the image. **Did it see the truth?**
-
-**Iris** is local-first **image evidence** for agents — dimensions, metadata, regions, optional OCR with boxes — **without** a default vision-LLM hallucination loop.
-
-```bash
-npx -y @sylphx/iris
-```
-
-| | Vision model guess | **Iris** |
-| --- | --- | --- |
-| Reproducible facts | ❌ varies by model | ✅ deterministic media twin |
-| Bounding boxes / regions | rare | first-class evidence |
-| Cloud API required | often | **no** |
-| Setup | keys + SDKs | **zero-config npx** |
-| Brand | mixed | `@sylphx/iris` · bin `iris` · **0.2.1** |
-
-**Rust-first** MCP runtime. Missing native → fail closed.
+**Canonical** [`@sylphx/iris`](https://www.npmjs.com/package/@sylphx/iris) · **bin** `iris` · **live** `0.2.1`
 
 [![npm version](https://img.shields.io/npm/v/@sylphx/iris?style=flat-square)](https://www.npmjs.com/package/@sylphx/iris)
-[![License](https://img.shields.io/badge/License-MIT-blue?style=flat-square)](https://opensource.org/licenses/MIT)
-[![CI/CD](https://img.shields.io/github/actions/workflow/status/SylphxAI/image-reader-mcp/ci.yml?style=flat-square&label=CI/CD)](https://github.com/SylphxAI/image-reader-mcp/actions/workflows/ci.yml)
-[![TypeScript](https://img.shields.io/badge/TypeScript-7.0-blue.svg?style=flat-square)](https://www.typescriptlang.org/)
-
-**Local-first** · **One smart `read_image` call** · **Evidence with bbox + provenance** · **23 tests**
-
-SOTA family roadmap: [docs/roadmap/sota-family-roadmap.md](docs/roadmap/sota-family-roadmap.md).
-
-[⭐ Star this repo](https://github.com/SylphxAI/image-reader-mcp) if agents should read images with facts, not vision-model guesses.
-· [Quick start](#quick-start) · [See it work](#see-it-work) · [Why not vision LLM guess?](#why-not-vision-llm-guess)
-
-This repository is product SSOT. Sibling agent tools live in separate repos.
-Each instrument is an independent repository (marketplace + stars).
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue?style=flat-square)](https://opensource.org/licenses/MIT)
+[![stars](https://img.shields.io/github/stars/SylphxAI/image-reader-mcp?style=flat-square)](https://github.com/SylphxAI/image-reader-mcp/stargazers)
 
 </div>
 
----
+## Zero-config in one line
 
+```bash
+npx -y @sylphx/iris
+```
+
+No API key. No global install. Starts a **stdio MCP server** agents can spawn immediately.
+
+| Client | Setup |
+| --- | --- |
+| **Any agent / CLI** | `npx -y @sylphx/iris` |
+| **Claude Code** | `claude mcp add iris -- npx -y @sylphx/iris` |
+| **Desktop / Cursor / VS Code / Codex** | `"command": "npx", "args": ["-y", "@sylphx/iris"]` |
+
+## Why Iris feels unfairly good
+
+Your agent looked at the image. **Did it see the truth?**
+
+| Vision model guess | **Iris** |
+| --- | --- |
+| Facts vary by model | **Deterministic media twin** |
+| OCR paraphrased | Optional OCR **with bboxes + confidence** |
+| Cloud API by default | **Local-first**, no key required for core path |
+| Setup: keys + SDKs | **`npx -y` — done** |
+| Brand mix | `@sylphx/iris` · bin `iris` · brand-sole `serverInfo.name=iris` |
+
+### Five reasons teams pick Iris
+
+1. **Zero-config MCP** — real one-liner for agents.
+2. **Facts over captions** — measurable fields agents can defend.
+3. **Local-first** — geometry/OCR/layout without default cloud VLM.
+4. **Fail closed** — missing native binary does not silently invent an engine.
+5. **Family ready** — compose with Citra (PDF), Cue (video), Locus (code).
+
+## What agents get
+
+Primary surface centers on **`read_image`** (Agent Media Twin). Optional advanced paths stay evidence-shaped.
+
+Minimal call:
+
+```json
+{ "path": "/absolute/path/to/photo.jpg" }
+```
+
+### Flagship use cases
+
+1. **Screenshots & UI captures** — dimensions, text regions, layout without VLM paraphrase  
+2. **Document photos** — OCR lines with geometry for citation  
+3. **Trust / privacy** — EXIF/GPS handling and trust warnings when requested  
+
+## Product docs
+
+| Doc | Purpose |
+| --- | --- |
+| [docs/POSITIONING.md](docs/POSITIONING.md) | Strategic positioning |
+| [docs/COMPETITIVE.md](docs/COMPETITIVE.md) | Peer anchors and wedge |
+| [docs/EVIDENCE_CONTRACT.md](docs/EVIDENCE_CONTRACT.md) | Evidence = result contract |
+| [docs/TOOL_SURFACE.md](docs/TOOL_SURFACE.md) | Few clear tools policy |
+| [docs/PRODUCT_INDEPENDENCE.md](docs/PRODUCT_INDEPENDENCE.md) | This repo is SSOT |
+| [docs/IPPB.md](docs/IPPB.md) | Independent public product bar |
+| [docs/PUBLISH.md](docs/PUBLISH.md) | npm / git publish status |
 
 
 ## See objects (L2, optional)
@@ -79,42 +96,6 @@ Spec: [docs/specs/agent-image-read-contract.md](docs/specs/agent-image-read-cont
 
 **Local-first frontier:** Rust decode, Tesseract native layout (no npm ML), optional Ollama VLM; cloud URL optional. Zero API key. Optional **L2 local semantics** (include_semantics) detects open-vocab objects (people/animals/things) with pixel bboxes via an official Florence-class sidecar (examples/florence-sidecar/) or Ollama -- never authority over OCR/layout locators.
 
-## Product docs
-
-| Doc | Purpose |
-| --- | --- |
-| [docs/POSITIONING.md](docs/POSITIONING.md) | Strategic positioning |
-| [docs/COMPETITIVE.md](docs/COMPETITIVE.md) | Peer anchors and wedge |
-| [docs/EVIDENCE_CONTRACT.md](docs/EVIDENCE_CONTRACT.md) | Evidence = result contract |
-| [docs/TOOL_SURFACE.md](docs/TOOL_SURFACE.md) | Few clear tools policy |
-| [docs/PRODUCT_INDEPENDENCE.md](docs/PRODUCT_INDEPENDENCE.md) | This repo is SSOT |
-| [docs/IPPB.md](docs/IPPB.md) | Independent public product bar |
-| [docs/PUBLISH.md](docs/PUBLISH.md) | npm/git publish status |
-
-## The problem
-
-Images are not filenames. They are pixels, EXIF, orientation, embedded GPS,
-hidden metadata, and text that only exists if you OCR it with geometry.
-
-Most agent stacks route images through a **vision LLM** and get a plausible
-description. Dimensions get rounded. OCR text gets paraphrased. Metadata
-disappears. Citations become "the model said so." Then the agent hallucinates —
-confidently.
-
-**Image Reader MCP is built for the moment your agent needs measurable facts about
-an image, not a creative caption.**
-
-## Why not vision LLM guess?
-
-| Typical vision path | Image Reader MCP |
-| --- | --- |
-| "Describe this image" | Return filename, mime, dimensions, and structured metadata |
-| Paraphrased OCR | Optional Tesseract lines with bounding boxes and confidence |
-| GPS and EXIF leak into context | GPS redacted; trust warnings for suspicious metadata |
-| No provenance | Agent Media Twin JSON with measurable, citeable fields |
-| Cloud API by default | **Local-first** — Rust decode + optional Tesseract OCR; sharp/exifr only optional fallbacks |
-| Ship and pray | **23** unit tests on schema, metadata, OCR hooks, safety limits, doctor, and release gate |
-
 ## See it work
 
 ### Why Iris wins for agents
@@ -123,57 +104,6 @@ an image, not a creative caption.**
 2. **Facts over captions** — structure agents can cite, not free-text “I see a chart”.
 3. **Local-first** — files never leave the machine by default.
 4. **Family** — pair with Citra (PDF), Cue (video), Locus (code).
-
-## Install (30 seconds)
-
-```bash
-npm install -g @sylphx/iris
-iris doctor
-claude mcp add iris -- npx @sylphx/iris
-```
-
-**Install once. Call once.**
-
-```bash
-```
-
-```json
-{
-  "path": "/absolute/path/to/photo.jpg",
-  "include_metadata": true,
-  "include_ocr": true
-}
-```
-
-`read_image` inspects the file locally and returns an Agent Media Twin — no
-generative LLM required:
-
-```json
-{
-  "filename": "photo.jpg",
-  "mime": "image/jpeg",
-  "dimensions": { "width": 4032, "height": 3024 },
-  "orientation": 1,
-  "metadata": {
-    "Make": "ExampleCamera",
-    "Model": "Pro X",
-    "DateTimeOriginal": "2026-03-15T14:22:10"
-  },
-  "ocr": {
-    "available": true,
-    "lines": [
-      {
-        "text": "INVOICE #1042",
-        "bbox": { "x": 120, "y": 48, "width": 310, "height": 36 },
-        "confidence": 92
-      }
-    ]
-  },
-  "trust_warnings": []
-}
-```
-
-Abbreviated shape — optional OCR skips gracefully when Tesseract is not installed.
 
 ## MCP Tool Surface
 
@@ -199,7 +129,7 @@ Add this to `claude_desktop_config.json`:
   "mcpServers": {
     "iris": {
       "command": "npx",
-      "args": ["@sylphx/iris"]
+      "args": ["-y", "@sylphx/iris"]
     }
   }
 }
@@ -208,7 +138,7 @@ Add this to `claude_desktop_config.json`:
 ### Any MCP Client
 
 ```bash
-npx @sylphx/iris
+npx -y @sylphx/iris
 ```
 
 Node.js `>=22.13` is required. Optional OCR uses a local Tesseract adapter when
