@@ -43,6 +43,11 @@ interface ServerManifest {
   packages?: Array<{ version?: string }>;
 }
 
+type DoctorCheckSummary = {
+  id: string;
+  status: 'ok' | 'warn' | 'fail';
+};
+
 const repoRoot = path.resolve(import.meta.dirname, '..');
 
 const addCheck = (
@@ -74,6 +79,13 @@ export function serverManifestMatchesPackage(
     serverJson?.version === packageVersion &&
     serverJson.packages?.[0]?.version === packageVersion
   );
+}
+
+export function hasUsableDecodePath(checks: readonly DoctorCheckSummary[]): boolean {
+  const sharp = checks.find((check) => check.id === 'sharp');
+  const rust = checks.find((check) => check.id === 'rust_decode_cli');
+
+  return sharp?.status === 'ok' || (sharp?.status === 'warn' && rust?.status === 'ok');
 }
 
 export async function buildReleaseGateReport(artifactDir: string): Promise<ReleaseGateReport> {
@@ -184,12 +196,18 @@ export async function buildReleaseGateReport(artifactDir: string): Promise<Relea
   );
 
   const doctor = await runDoctor(pkg.version);
+  const sharpCheck = doctor.checks.find((check) => check.id === 'sharp');
+  const rustDecodeCheck = doctor.checks.find((check) => check.id === 'rust_decode_cli');
   addCheck(
     checks,
     'doctor:sharp',
-    doctor.checks.find((check) => check.id === 'sharp')?.status === 'ok',
-    'doctor reports sharp decode pipeline is available',
-    { doctorStatus: doctor.status }
+    hasUsableDecodePath(doctor.checks),
+    'doctor reports sharp or Rust decode pipeline is available',
+    {
+      doctorStatus: doctor.status,
+      sharpStatus: sharpCheck?.status,
+      rustDecodeStatus: rustDecodeCheck?.status,
+    }
   );
 
   addCheck(

@@ -1,6 +1,10 @@
 import { describe, expect, it } from 'bun:test';
 import path from 'node:path';
-import { buildReleaseGateReport, serverManifestMatchesPackage } from '../scripts/release-gate.js';
+import {
+  buildReleaseGateReport,
+  hasUsableDecodePath,
+  serverManifestMatchesPackage,
+} from '../scripts/release-gate.js';
 
 describe('image reader release gate', () => {
   it('passes Phase 0 contract checks', async () => {
@@ -17,6 +21,21 @@ describe('image reader release gate', () => {
       true
     );
   }, 300_000);
+
+  it('accepts the Rust decode path when optional sharp is absent', () => {
+    expect(
+      hasUsableDecodePath([
+        { id: 'sharp', status: 'warn' },
+        { id: 'rust_decode_cli', status: 'ok' },
+      ])
+    ).toBe(true);
+    expect(
+      hasUsableDecodePath([
+        { id: 'sharp', status: 'warn' },
+        { id: 'rust_decode_cli', status: 'warn' },
+      ])
+    ).toBe(false);
+  });
 
   it('requires package and marketplace versions to stay aligned', async () => {
     const report = await buildReleaseGateReport(
