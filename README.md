@@ -5,7 +5,7 @@
 
 ### Image evidence for agents — not vision-model guesses.
 
-**Local-first image facts** your agent can cite: dimensions, metadata, regions, optional OCR with boxes.
+**Local-first image facts** your agent can cite: dimensions, metadata, regions, and OCR boxes when the native OCR route is available.
 
 **Canonical** [`@sylphx/iris`](https://www.npmjs.com/package/@sylphx/iris) · **bin** `iris` · **live** `0.2.1`
 
@@ -36,7 +36,7 @@ Your agent looked at the image. **Did it see the truth?**
 | Vision model guess | **Iris** |
 | --- | --- |
 | Facts vary by model | **Deterministic media twin** |
-| OCR paraphrased | Optional OCR **with bboxes + confidence** |
+| OCR paraphrased | Native OCR **with bboxes + confidence** when available |
 | Cloud API by default | **Local-first**, no key required for core path |
 | Setup: keys + SDKs | **`npx -y` — done** |
 | Brand mix | `@sylphx/iris` · bin `iris` · brand-sole `serverInfo.name=iris` |
@@ -45,7 +45,7 @@ Your agent looked at the image. **Did it see the truth?**
 
 1. **Zero-config MCP** — real one-liner for agents.
 2. **Facts over captions** — measurable fields agents can defend.
-3. **Local-first** — geometry/OCR/layout without default cloud VLM.
+3. **Local-first** — geometry now; OCR/layout are opt-in native routes as they land, without a default cloud VLM.
 4. **Fail closed** — missing native binary does not silently invent an engine.
 5. **Family ready** — compose with Citra (PDF), Cue (video), Locus (code).
 
@@ -62,7 +62,7 @@ Minimal call:
 ### Flagship use cases
 
 1. **Screenshots & UI captures** — dimensions, text regions, layout without VLM paraphrase  
-2. **Document photos** — OCR lines with geometry for citation  
+2. **Document photos** — OCR lines with geometry for citation when the native OCR route is available
 3. **Trust / privacy** — EXIF/GPS handling and trust warnings when requested  
 
 ## Product docs
@@ -90,11 +90,11 @@ Objects are `scored_non_locator` evidence — deterministic L0/L1 facts (geometr
 
 ## Read images (not vague vision)
 
-Iris is **local-first**: geometry + OCR + **layout blocks** + **agent_map** so a text-only agent can understand picture architecture without a vision model.
+Iris is **local-first**: geometry first, with OCR + **layout blocks** + **agent_map** as evidence-shaped native routes so a text-only agent can understand picture architecture without a vision model.
 
 Spec: [docs/specs/agent-image-read-contract.md](docs/specs/agent-image-read-contract.md)
 
-**Local-first frontier:** Rust decode, Tesseract native layout (no npm ML), optional Ollama VLM; cloud URL optional. Zero API key. Optional **L2 local semantics** (include_semantics) detects open-vocab objects (people/animals/things) with pixel bboxes via an official Florence-class sidecar (examples/florence-sidecar/) or Ollama -- never authority over OCR/layout locators.
+**Local-first frontier:** Rust decode now; Tesseract native layout (no npm ML), optional Ollama VLM, and cloud URL remain opt-in routes. Zero API key. Optional **L2 local semantics** (include_semantics) is a target for open-vocab objects (people/animals/things) with pixel bboxes via an official Florence-class sidecar (examples/florence-sidecar/) or Ollama — never authority over OCR/layout locators. The current Rust MCP rejects routes that are not yet implemented there.
 
 ## See it work
 
@@ -109,7 +109,17 @@ Spec: [docs/specs/agent-image-read-contract.md](docs/specs/agent-image-read-cont
 
 | Tool | Use it when the agent needs to... |
 | --- | --- |
-| `read_image` | Read a local image and return dimensions, mime, metadata, optional OCR, and trust warnings. |
+| `read_image` | Read a local image and return dimensions, mime, metadata, optional region evidence, and trust warnings. Native OCR is exposed only when its Rust route is available. |
+
+### Rust-native authority boundary
+
+The `iris` launcher is fail-closed and runs the Rust MCP server. The current
+native contract exposes `read_image`, `image_probe`, and `crop_region` with
+fixed safety budgets; unknown OCR, layout, `agent_map`, semantics, provider,
+and caller-supplied budget fields are rejected. Residual TypeScript helpers are
+not an alternate MCP backend. The OCR/layout/semantics roadmap remains intact,
+but each capability must land in Rust with evidence and benchmark proof before
+it becomes public.
 
 Supported formats: PNG, JPEG, GIF, WebP, TIFF, and other formats the **Rust decode engine** supports (optional sharp covers additional formats when installed).
 
@@ -142,14 +152,14 @@ npx -y @sylphx/iris
 ```
 
 Node.js `>=22.13` is required. Optional OCR uses a local Tesseract adapter when
-installed — no cloud credentials required by default.
+its native route is available — no cloud credentials required by default.
 
 ## Security model
 
 - **Local-first** — `read_image` resolves paths on the local machine; no cloud vision API by default.
 - **GPS redaction** — location metadata is stripped from agent-facing output unless explicitly opted in.
 - **Size and format limits** — oversized or unsupported inputs return structured errors, not partial guesses.
-- **Optional OCR** — Tesseract runs locally when installed; missing OCR is reported as `available: false`, not silent failure.
+- **Optional OCR** — Tesseract is local-only when its native route is available; unsupported requests fail explicitly rather than being silently ignored.
 - **Trust warnings** — suspicious EXIF, orientation, or metadata anomalies surface in `trust_warnings` for agent verification.
 
 ## Release proof
