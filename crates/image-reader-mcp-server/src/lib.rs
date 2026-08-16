@@ -8,25 +8,11 @@ use rmcp::{
     model::{Implementation, ServerCapabilities, ServerInfo},
     tool, tool_handler, tool_router, ErrorData, ServerHandler,
 };
-use schemars::JsonSchema;
-use serde::{Deserialize, Serialize};
-use serde_json::{Map, Value};
-
-/// Free-form MCP tool args object (root type=object required by rmcp ≥1.8 schema gate).
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonSchema)]
-#[serde(transparent)]
-struct FreeformToolArgs(Map<String, Value>);
-
-impl FreeformToolArgs {
-    fn into_value(self) -> Value {
-        Value::Object(self.0)
-    }
-}
 
 pub const SERVER_NAME: &str = "iris";
 pub const SERVER_VERSION: &str = "0.2.1";
 pub const SERVER_INSTRUCTIONS: &str =
-    "Evidence-first image reader MCP server (Rust rmcp transport). Use read_image for Agent Media Twin metadata, optional region evidence, and trust warnings without generative LLM.";
+    "Evidence-first image reader MCP server (Rust rmcp transport). Use read_image for Agent Media Twin metadata, image_probe for cheap geometry, and crop_region for citeable pixel evidence. Unsupported OCR, layout, agent-map, and provider flags are rejected until their Rust authority is available.";
 
 #[derive(Clone)]
 pub struct ImageReaderMcp {
@@ -44,13 +30,33 @@ impl ImageReaderMcp {
 #[tool_router]
 impl ImageReaderMcp {
     #[tool(
-        description = "Evidence-first image reader. Returns an Agent Media Twin with filename, mime, dimensions, optional region evidence, and trust warnings. No generative LLM is used."
+        description = "Evidence-first image reader. Returns an Agent Media Twin with filename, mime, dimensions, optional region evidence, and trust warnings. No generative LLM is used. Unsupported OCR, layout, agent-map, and provider flags are rejected."
     )]
     fn read_image(
         &self,
-        Parameters(args): Parameters<FreeformToolArgs>,
+        Parameters(args): Parameters<read_image::ReadImageArgs>,
     ) -> Result<rmcp::model::CallToolResult, ErrorData> {
-        read_image::read_image(args.into_value())
+        read_image::read_image_typed(args)
+    }
+
+    #[tool(
+        description = "Cheap local image probe. Returns format, MIME, dimensions, pixel count, alpha/color information, source hash, and decode route."
+    )]
+    fn image_probe(
+        &self,
+        Parameters(args): Parameters<read_image::ImageProbeArgs>,
+    ) -> Result<rmcp::model::CallToolResult, ErrorData> {
+        read_image::image_probe(args)
+    }
+
+    #[tool(
+        description = "Citeable local pixel crop. Returns the requested bounding box, PNG region hash, dimensions, and crop route; optionally includes PNG bytes."
+    )]
+    fn crop_region(
+        &self,
+        Parameters(args): Parameters<read_image::CropRegionArgs>,
+    ) -> Result<rmcp::model::CallToolResult, ErrorData> {
+        read_image::crop_region_tool(args)
     }
 }
 
@@ -72,18 +78,63 @@ impl ServerHandler for ImageReaderMcp {
 
 #[cfg(test)]
 mod tests {
-    use super::ImageReaderMcp;
+    use super::{read_image, ImageReaderMcp, SERVER_VERSION};
+    use serde_json::Value;
+
     #[test]
-    fn exposes_read_image_tool_surface() {
+    fn exposes_primary_tool_surface() {
         let tools = ImageReaderMcp::new().tool_router.list_all();
         let names: Vec<_> = tools.iter().map(|tool| tool.name.to_string()).collect();
-        assert!(names.contains(&"read_image".to_string()));
+        assert_eq!(names, vec!["crop_region", "image_probe", "read_image"]);
+    }
+
+    #[test]
+    fn publishes_required_paths_and_regions_in_tool_schemas() {
+        let tools = ImageReaderMcp::new().tool_router.list_all();
+
+        for name in ["read_image", "image_probe", "crop_region"] {
+            let tool = tools
+                .iter()
+                .find(|tool| tool.name == name)
+                .unwrap_or_else(|| panic!("missing tool {name}"));
+            let required = tool
+                .input_schema
+                .get("required")
+                .and_then(Value::as_array)
+                .unwrap_or_else(|| panic!("{name} schema has no required fields"));
+            assert!(required.iter().any(|field| field == "path"));
+            assert_eq!(
+                tool.input_schema.get("additionalProperties"),
+                Some(&Value::Bool(false)),
+                "{name} must reject unsupported arguments"
+            );
+            let properties = tool
+                .input_schema
+                .get("properties")
+                .and_then(Value::as_object)
+                .unwrap_or_else(|| panic!("{name} schema has no properties"));
+            assert!(!properties.contains_key("max_file_bytes"));
+            assert!(!properties.contains_key("max_pixels"));
+            if name == "crop_region" {
+                assert!(required.iter().any(|field| field == "region"));
+            }
+        }
+    }
+
+    #[test]
+    fn read_image_rejects_unsupported_provider_flags() {
+        let parsed = serde_json::from_value::<read_image::ReadImageArgs>(serde_json::json!({
+            "path": "/tmp/image.png",
+            "include_ocr": true,
+        }));
+        let error = parsed.expect_err("unsupported OCR must not be silently accepted");
+        assert!(error.to_string().contains("unknown field"));
     }
 
     #[test]
     fn server_info_is_brand_sole_iris() {
+        use super::SERVER_NAME;
         use rmcp::ServerHandler;
-        use super::{SERVER_NAME, SERVER_VERSION};
         let info = ImageReaderMcp::new().get_info();
         let name = info.server_info.name.to_string();
         let version = info.server_info.version.to_string();
