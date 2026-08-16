@@ -61,7 +61,7 @@ Minimal call:
 
 ### Flagship use cases
 
-1. **Screenshots & UI captures** — dimensions, text regions, layout without VLM paraphrase  
+1. **Screenshots & UI captures** — dimensions, OCR text regions, and citeable crops without VLM paraphrase
 2. **Document photos** — OCR lines with geometry for citation when Tesseract is installed
 3. **Trust / privacy** — EXIF/GPS handling and trust warnings when requested  
 
@@ -90,7 +90,9 @@ Objects are `scored_non_locator` evidence — deterministic L0/L1 facts (geometr
 
 ## Read images (not vague vision)
 
-Iris is **local-first**: geometry first, with optional OCR + **layout blocks** + **agent_map** as evidence-shaped native routes so a text-only agent can understand picture architecture without a vision model.
+Iris is **local-first**: geometry first, with optional OCR; layout blocks and
+**agent_map** remain evidence-shaped native targets that require Rust proof before
+they become public MCP routes.
 
 Spec: [docs/specs/agent-image-read-contract.md](docs/specs/agent-image-read-contract.md)
 

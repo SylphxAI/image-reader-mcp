@@ -58,4 +58,4 @@ npx -y @sylphx/iris
 - The current Rust MCP contract is geometry, metadata, optional local OCR, and citeable region evidence; unsupported layout/semantic/provider flags fail closed.
 - **`sharp` + `exifr` demoted to optionalDependencies** (2026-08-01); Rust decode does not need them.  
 - Remaining hard deps for doctor/TS SDK helpers: `@modelcontextprotocol/sdk`, `zod`.  
-- **Citra-style multi-arch optionalDependencies** for natives (`@sylphx/image-reader-mcp-<platform>`); main package no longer embeds `bin/native` in published files.
+- **Citra-style multi-arch optionalDependencies** for natives (`@sylphx/iris-<platform>`); main package no longer embeds `bin/native` in published files.

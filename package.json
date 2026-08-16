@@ -61,7 +61,7 @@
     "start": "./bin/iris",
     "clean": "rm -rf dist coverage",
     "prepublishOnly": "bun run clean && bun run build && bun run build:rust",
-    "release": "bun run typecheck && bun run check && bun run build && bun test && changeset publish",
+    "release": "echo 'Direct publishing is disabled; use the GitHub Actions Release workflow.' >&2 && exit 1",
     "benchmark:public-proof": "bun scripts/public-proof.ts",
     "brand:pack-plan": "bun scripts/brand-pack-plan.ts"
   },
