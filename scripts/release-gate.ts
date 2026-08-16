@@ -29,6 +29,20 @@ interface ReleaseGateReport {
   checks: GateCheck[];
 }
 
+interface PackageManifest {
+  version: string;
+  bin?: Record<string, string>;
+  dependencies?: Record<string, string>;
+  devDependencies?: Record<string, string>;
+  exports?: Record<string, unknown>;
+}
+
+interface ServerManifest {
+  title?: string;
+  version?: string;
+  packages?: Array<{ version?: string }>;
+}
+
 const repoRoot = path.resolve(import.meta.dirname, '..');
 
 const addCheck = (
@@ -52,9 +66,19 @@ const fileExists = (relativePath: string): boolean =>
 const readJson = (relativePath: string): unknown =>
   JSON.parse(readFileSync(path.join(repoRoot, relativePath), 'utf8'));
 
+export function serverManifestMatchesPackage(
+  packageVersion: string,
+  serverJson: ServerManifest | null
+): boolean {
+  return (
+    serverJson?.version === packageVersion &&
+    serverJson.packages?.[0]?.version === packageVersion
+  );
+}
+
 export async function buildReleaseGateReport(artifactDir: string): Promise<ReleaseGateReport> {
   const checks: GateCheck[] = [];
-  const pkg = readJson('package.json') as { version: string; bin?: Record<string, string>; dependencies?: Record<string, string>; exports?: Record<string, unknown> };
+  const pkg = readJson('package.json') as PackageManifest;
 
   addCheck(
     checks,
@@ -80,15 +104,25 @@ export async function buildReleaseGateReport(artifactDir: string): Promise<Relea
     { exports: pkg.exports }
   );
 
-  const serverJson = fileExists('server.json')
-    ? (readJson('server.json') as { title?: string })
-    : null;
+  const serverJson = fileExists('server.json') ? (readJson('server.json') as ServerManifest) : null;
   addCheck(
     checks,
     'marketplace:server_json_title_iris',
     serverJson?.title === 'Iris',
     'server.json marketplace title is Iris',
     { title: serverJson?.title }
+  );
+
+  addCheck(
+    checks,
+    'marketplace:server_json_version',
+    serverManifestMatchesPackage(pkg.version, serverJson),
+    'server.json and its npm package version match package.json',
+    {
+      packageVersion: pkg.version,
+      serverVersion: serverJson?.version,
+      marketplacePackageVersion: serverJson?.packages?.[0]?.version,
+    }
   );
 
   addCheck(
