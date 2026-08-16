@@ -16,7 +16,7 @@
 | MCP launcher | Rust-first fail-closed | `bin/iris` → staged native server |
 | Package size | **~9.7 MB unpacked** | almost entirely `bin/native/iris-mcp-server` |
 | npm hard deps | **Improved** | hard: `@modelcontextprotocol/sdk`, `zod` for doctor/SDK; `sharp`/`exifr` **optional** |
-| OCR | Rust MCP route not exposed yet | Native schema rejects `include_ocr`; the residual TypeScript Tesseract helper is not an MCP fallback |
+| OCR | Rust MCP local optional | `include_ocr` invokes Tesseract without a shell; missing binary/language packs are explicit gaps |
 | VLM | Optional | Ollama local or `IRIS_OPTIONAL_LLM_URL` — non-authority |
 
 ## Target architecture
@@ -48,14 +48,14 @@ Agent ──MCP──► iris native ──► decode/crop (Rust)
 
 ```bash
 npx -y @sylphx/iris
-# read_image { "path": "/abs/a.png" }
-# OCR remains an opt-in target; the Rust MCP rejects it until its native route lands.
+# read_image { "path": "/abs/a.png", "include_ocr": true }
+# OCR is local and optional; missing Tesseract is reported as available:false.
 ```
 
 ## Progress / residual
 
 - Native MCP path is fail-closed Rust (primary).  
-- The current Rust MCP contract is geometry, metadata, and citeable region evidence; unsupported OCR/layout/semantic/provider flags fail closed.
+- The current Rust MCP contract is geometry, metadata, optional local OCR, and citeable region evidence; unsupported layout/semantic/provider flags fail closed.
 - **`sharp` + `exifr` demoted to optionalDependencies** (2026-08-01); Rust decode does not need them.  
 - Remaining hard deps for doctor/TS SDK helpers: `@modelcontextprotocol/sdk`, `zod`.  
 - **Citra-style multi-arch optionalDependencies** for natives (`@sylphx/image-reader-mcp-<platform>`); main package no longer embeds `bin/native` in published files.

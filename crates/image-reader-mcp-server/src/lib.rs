@@ -12,7 +12,7 @@ use rmcp::{
 pub const SERVER_NAME: &str = "iris";
 pub const SERVER_VERSION: &str = "0.2.1";
 pub const SERVER_INSTRUCTIONS: &str =
-    "Evidence-first image reader MCP server (Rust rmcp transport). Use read_image for Agent Media Twin metadata, image_probe for cheap geometry, and crop_region for citeable pixel evidence. Unsupported OCR, layout, agent-map, and provider flags are rejected until their Rust authority is available.";
+    "Evidence-first image reader MCP server (Rust rmcp transport). Use read_image for Agent Media Twin metadata and optional local Tesseract OCR, image_probe for cheap geometry, and crop_region for citeable pixel evidence. Unsupported layout, agent-map, semantics, and provider flags are rejected until their Rust authority is available.";
 
 #[derive(Clone)]
 pub struct ImageReaderMcp {
@@ -30,7 +30,7 @@ impl ImageReaderMcp {
 #[tool_router]
 impl ImageReaderMcp {
     #[tool(
-        description = "Evidence-first image reader. Returns an Agent Media Twin with filename, mime, dimensions, optional region evidence, and trust warnings. No generative LLM is used. Unsupported OCR, layout, agent-map, and provider flags are rejected."
+        description = "Evidence-first image reader. Returns an Agent Media Twin with filename, mime, dimensions, optional local Tesseract OCR, optional region evidence, and trust warnings. No generative LLM is used. Unsupported layout, agent-map, semantics, and provider flags are rejected."
     )]
     fn read_image(
         &self,
@@ -115,6 +115,19 @@ mod tests {
                 .unwrap_or_else(|| panic!("{name} schema has no properties"));
             assert!(!properties.contains_key("max_file_bytes"));
             assert!(!properties.contains_key("max_pixels"));
+            if name == "read_image" {
+                for field in [
+                    "include_ocr",
+                    "include_ocr_words",
+                    "ocr_languages",
+                    "ocr_min_confidence",
+                ] {
+                    assert!(
+                        properties.contains_key(field),
+                        "read_image must expose {field}"
+                    );
+                }
+            }
             if name == "crop_region" {
                 assert!(required.iter().any(|field| field == "region"));
             }
@@ -125,9 +138,9 @@ mod tests {
     fn read_image_rejects_unsupported_provider_flags() {
         let parsed = serde_json::from_value::<read_image::ReadImageArgs>(serde_json::json!({
             "path": "/tmp/image.png",
-            "include_ocr": true,
+            "include_layout": true,
         }));
-        let error = parsed.expect_err("unsupported OCR must not be silently accepted");
+        let error = parsed.expect_err("unsupported layout must not be silently accepted");
         assert!(error.to_string().contains("unknown field"));
     }
 
