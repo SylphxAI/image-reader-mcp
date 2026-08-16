@@ -34,6 +34,7 @@ interface PackageManifest {
   bin?: Record<string, string>;
   dependencies?: Record<string, string>;
   devDependencies?: Record<string, string>;
+  optionalDependencies?: Record<string, string>;
   exports?: Record<string, unknown>;
 }
 
@@ -49,6 +50,12 @@ type DoctorCheckSummary = {
 };
 
 const repoRoot = path.resolve(import.meta.dirname, '..');
+const NATIVE_PACKAGE_NAMES = [
+  '@sylphx/iris-darwin-arm64',
+  '@sylphx/iris-darwin-x64',
+  '@sylphx/iris-linux-x64-gnu',
+  '@sylphx/iris-linux-arm64-gnu',
+] as const;
 
 const addCheck = (
   checks: GateCheck[],
@@ -78,6 +85,15 @@ export function serverManifestMatchesPackage(
   return (
     serverJson?.version === packageVersion &&
     serverJson.packages?.[0]?.version === packageVersion
+  );
+}
+
+export function nativeOptionalDependenciesMatchPackage(
+  packageVersion: string,
+  packageJson: PackageManifest
+): boolean {
+  return NATIVE_PACKAGE_NAMES.every(
+    (name) => packageJson.optionalDependencies?.[name] === packageVersion
   );
 }
 
@@ -134,6 +150,19 @@ export async function buildReleaseGateReport(artifactDir: string): Promise<Relea
       packageVersion: pkg.version,
       serverVersion: serverJson?.version,
       marketplacePackageVersion: serverJson?.packages?.[0]?.version,
+    }
+  );
+
+  addCheck(
+    checks,
+    'package:native_versions',
+    nativeOptionalDependenciesMatchPackage(pkg.version, pkg),
+    'all Iris native optionalDependencies match the root package version',
+    {
+      packageVersion: pkg.version,
+      nativeVersions: Object.fromEntries(
+        NATIVE_PACKAGE_NAMES.map((name) => [name, pkg.optionalDependencies?.[name]])
+      ),
     }
   );
 

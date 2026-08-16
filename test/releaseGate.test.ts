@@ -3,6 +3,7 @@ import path from 'node:path';
 import {
   buildReleaseGateReport,
   hasUsableDecodePath,
+  nativeOptionalDependenciesMatchPackage,
   serverManifestMatchesPackage,
 } from '../scripts/release-gate.js';
 
@@ -49,6 +50,28 @@ describe('image reader release gate', () => {
       serverManifestMatchesPackage('0.2.1', {
         version: '0.2.1',
         packages: [{ version: '0.2.0' }],
+      })
+    ).toBe(false);
+    expect(
+      nativeOptionalDependenciesMatchPackage('0.2.1', {
+        version: '0.2.1',
+        optionalDependencies: {
+          '@sylphx/iris-darwin-arm64': '0.2.1',
+          '@sylphx/iris-darwin-x64': '0.2.1',
+          '@sylphx/iris-linux-x64-gnu': '0.2.1',
+          '@sylphx/iris-linux-arm64-gnu': '0.2.1',
+        },
+      })
+    ).toBe(true);
+    expect(
+      nativeOptionalDependenciesMatchPackage('0.2.1', {
+        version: '0.2.1',
+        optionalDependencies: {
+          '@sylphx/iris-darwin-arm64': '0.2.0',
+          '@sylphx/iris-darwin-x64': '0.2.1',
+          '@sylphx/iris-linux-x64-gnu': '0.2.1',
+          '@sylphx/iris-linux-arm64-gnu': '0.2.1',
+        },
       })
     ).toBe(false);
   }, 300_000);
