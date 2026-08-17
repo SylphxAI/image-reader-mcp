@@ -85,10 +85,9 @@ pub(crate) struct ReadImageArgs {
 impl ReadImageArgs {
     fn into_value(self) -> Result<Value, rmcp::ErrorData> {
         serde_json::to_value(self).map_err(|error| {
-            rmcp::ErrorData::invalid_params(
-                format!("failed to serialize read_image parameters: {error}"),
-                None,
-            )
+            invalid_params_error(format!(
+                "failed to serialize read_image parameters: {error}"
+            ))
         })
     }
 }
@@ -607,17 +606,46 @@ fn with_family_envelope(tool: &str, route_path: &str, mut body: Value) -> Value 
     body
 }
 
+fn recovery_data(code: &'static str, next_action: &'static str) -> Value {
+    json!({
+        "status": "error",
+        "product": "iris",
+        "code": code,
+        "next_action": next_action,
+    })
+}
+
+fn invalid_params_error(message: impl Into<String>) -> rmcp::ErrorData {
+    rmcp::ErrorData::invalid_params(
+        message.into(),
+        Some(recovery_data(
+            "INVALID_PARAMS",
+            "Correct the documented request fields and retry.",
+        )),
+    )
+}
+
 fn map_probe_error(error: image_reader_core::ProbeError) -> rmcp::ErrorData {
+    let (code, next_action) = match &error.code {
+        ProbeErrorCode::InvalidParams => (
+            "INVALID_PARAMS",
+            "Correct the documented request fields and retry.",
+        ),
+        ProbeErrorCode::InvalidRequest => (
+            "INVALID_REQUEST",
+            "Provide a readable local image within the fixed safety limits and retry.",
+        ),
+    };
+    let data = Some(recovery_data(code, next_action));
     match error.code {
-        ProbeErrorCode::InvalidParams => rmcp::ErrorData::invalid_params(error.message, None),
-        ProbeErrorCode::InvalidRequest => rmcp::ErrorData::invalid_request(error.message, None),
+        ProbeErrorCode::InvalidParams => rmcp::ErrorData::invalid_params(error.message, data),
+        ProbeErrorCode::InvalidRequest => rmcp::ErrorData::invalid_request(error.message, data),
     }
 }
 
 pub fn read_image(args: Value) -> Result<CallToolResult, rmcp::ErrorData> {
-    let typed = serde_json::from_value::<ReadImageArgs>(args.clone()).map_err(|error| {
-        rmcp::ErrorData::invalid_params(format!("invalid read_image parameters: {error}"), None)
-    })?;
+    let typed = serde_json::from_value::<ReadImageArgs>(args.clone())
+        .map_err(|error| invalid_params_error(format!("invalid read_image parameters: {error}")))?;
     let success = read_image_from_value(&args).map_err(map_probe_error)?;
 
     let mut twin = serde_json::to_value(&success.twin).expect("AgentMediaTwin serializes");
@@ -627,7 +655,7 @@ pub fn read_image(args: Value) -> Result<CallToolResult, rmcp::ErrorData> {
     let mut gaps: Vec<String> = Vec::new();
     if typed.include_ocr.unwrap_or(false) {
         let ocr = run_tesseract(Path::new(&typed.path), &typed).map_err(|error| match error {
-            OcrError::InvalidParams(message) => rmcp::ErrorData::invalid_params(message, None),
+            OcrError::InvalidParams(message) => invalid_params_error(message),
         })?;
         if !ocr.available {
             if let Some(reason) = ocr.skipped_reason.as_deref() {
@@ -799,6 +827,47 @@ mod tests {
         .expect_err("unsupported layout must not be silently ignored");
         assert_eq!(error.code, rmcp::model::ErrorCode::INVALID_PARAMS);
         assert!(error.message.contains("unknown field"));
+        assert_eq!(
+            error
+                .data
+                .as_ref()
+                .and_then(|data| data.get("status"))
+                .and_then(Value::as_str),
+            Some("error")
+        );
+        assert_eq!(
+            error
+                .data
+                .as_ref()
+                .and_then(|data| data.get("next_action"))
+                .and_then(Value::as_str),
+            Some("Correct the documented request fields and retry.")
+        );
+    }
+
+    #[test]
+    fn native_errors_include_truthful_recovery_data() {
+        let error = read_image(serde_json::json!({
+            "path": "/tmp/iris-missing-image.png",
+        }))
+        .expect_err("missing image must fail closed");
+        assert_eq!(error.code, rmcp::model::ErrorCode::INVALID_REQUEST);
+        assert_eq!(
+            error
+                .data
+                .as_ref()
+                .and_then(|data| data.get("code"))
+                .and_then(Value::as_str),
+            Some("INVALID_REQUEST")
+        );
+        assert_eq!(
+            error
+                .data
+                .as_ref()
+                .and_then(|data| data.get("next_action"))
+                .and_then(Value::as_str),
+            Some("Provide a readable local image within the fixed safety limits and retry.")
+        );
     }
 
     #[test]

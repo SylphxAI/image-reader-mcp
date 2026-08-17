@@ -16,3 +16,11 @@ Every tool result includes:
 - domain payload (often also as top-level twin/results/answer for compatibility)
 
 Schema: `SylphxAI/skills` `schemas/instrument-evidence-envelope.schema.json`.
+
+## Failure recovery
+
+The Rust MCP surface fails closed before emitting partial evidence. JSON-RPC
+errors include `data.status="error"`, a stable `data.code`, and a truthful
+`data.next_action` so a consumer can correct the path, region, or documented
+request fields and retry. An invalid image never becomes an `ok` twin with
+invented content.

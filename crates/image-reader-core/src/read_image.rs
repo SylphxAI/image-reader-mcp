@@ -83,6 +83,12 @@ pub fn read_image_with_envelope(
     options: ReadImageOptions,
 ) -> Result<ReadImageSuccess, ProbeError> {
     let probe = probe_image(path, options.max_file_bytes)?;
+    if probe.pixel_count > options.max_pixels {
+        return Err(ProbeError::invalid_request(format!(
+            "Image exceeds the {} pixel safety budget ({}x{}).",
+            options.max_pixels, probe.width, probe.height
+        )));
+    }
     let twin = read_image_from_probe(path, &probe, &options)?;
     let envelope = build_read_image_envelope(EnvelopeInput {
         source_path: path,
@@ -281,6 +287,28 @@ mod tests {
     }
 
     #[test]
+    fn read_image_rejects_source_above_pixel_safety_budget() {
+        let temp = tempfile::tempdir().expect("tempdir");
+        let path = temp.path().join("budget.png");
+        let img = image::RgbaImage::from_pixel(32, 16, Rgba([1, 2, 3, 255]));
+        img.save(&path).expect("save");
+
+        let error = read_image_with_envelope(
+            &path,
+            ReadImageOptions {
+                include_metadata: false,
+                max_pixels: 100,
+                ..ReadImageOptions::default()
+            },
+        )
+        .expect_err("pixel budget must be enforced before understanding");
+
+        assert_eq!(error.code, crate::ProbeErrorCode::InvalidRequest);
+        assert!(error.message.contains("100 pixel safety budget"));
+        assert!(error.message.contains("32x16"));
+    }
+
+    #[test]
     fn read_image_attaches_region_evidence_when_requested() {
         let temp = tempfile::tempdir().expect("tempdir");
         let path = temp.path().join("region.png");
@@ -351,7 +379,6 @@ mod tests {
         assert!(twin.metadata.is_none());
     }
 
-
     #[test]
     fn bw8_parse_region_bbox_missing_and_types() {
         use serde_json::json;
@@ -364,7 +391,6 @@ mod tests {
         assert!(parse_region_bbox(&json!({"x":"1","y":0,"width":1,"height":1})).is_err());
         assert!(parse_region_bbox(&json!({})).is_err());
     }
-
 
     #[test]
     fn bulk_parse_region_bbox_negative_rejected_and_full_ok() {
